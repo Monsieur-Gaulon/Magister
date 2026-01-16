@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Code Interface</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background-color: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      color: #333;
+    }
+    header {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    header img {
+      width: 400px;
+      height: auto;
+    }
+    h1 {
+      margin: 1rem 0;
+      font-size: 1.8rem;
+    }
+    input[type="text"] {
+      padding: 0.8rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      width: 500px;
+      margin-bottom: 1rem;
+    }
+    button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #444;
+      color: white;
+      margin: 0.5rem;
+    }
+    #question-box {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 100%;
+      display: none;
+      text-align: center;
+      font-size: 1.3rem;
+    }
+    .reveal {
+      margin-top: 1rem;
+      font-weight: bold;
+      display: none;
+    }
+    .category-CA { background-color: #000; color: white; }
+    .category-CB { background-color: #000; color: white; }
+    .category-CF { background-color: #000; color: white; }
+    .category-CJ { background-color: #000; color: white; }
+    .category-GA { background-color: #003366; color: white; }
+    .category-GB { background-color: #003366; color: white; }
+    .category-LI { background-color: #990000; color: white; }
+    .category-OR { background-color: #008000; color: white; }
+    .category-OA { background-color: #4577ca; color: White; }
+    .category-LA { background-color: #FFD700; color: black; }
+    .category-LB { background-color: #FFD700; color: black; }
+    .category-CH { background-color: #000; color: white; }
+
+
+    .button-row {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="https://i.postimg.cc/63QLrWWx/logo.png" alt="Logo Quiz">
+    <h1>Recherche de question par code</h1>
+   <input type="text" id="codeInput" placeholder="Entrez un code (ex : CA1)">
+    <button onclick="searchQuestion()">Valider</button>
+    <button onclick="resetPage()">Nouvelle recherche</button>
+	<button onclick="openQRScanner()">📷 Scan QR</button>
+  </header>
+
+  <div id="question-box" class="">
+    <div id="question-text"></div>
+    <div class="button-row">
+      <button onclick="revealAnswer()">Réponse</button>
+      <button onclick="searchQuestion()">Nouvelle question</button>
+      <button onclick="resetPage()">Changer de code</button>
+    </div>
+    <div id="answer-text" class="reveal"></div>
+  </div>
+  <div id="qr-overlay" style="display:none">
+  <div id="qr-reader" style="width:300px"></div>
+  <button onclick="closeQRScanner()">Fermer</button>
+</div>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+  <script>
+  
+   function openQRScanner() {
+    document.getElementById("qr-overlay").style.display = "block";
+    // scanner ici
+  }
+
+  function closeQRScanner() {
+    document.getElementById("qr-overlay").style.display = "none";
+  }
+
+  window.openQRScanner = openQRScanner;
+  window.closeQRScanner = closeQRScanner;
+  
+    const data = {
+      CA1: [
+        { q: "Conjugue 'manger' à la 1re personne du singulier.", a: "Je mange." },
+        { q: "Conjugue 'finir' à la 3e personne du pluriel.", a: "Ils finissent." },
+        { q: "Conjugue 'prendre' à la 2e personne du singulier.", a: "Tu prends." }
+      ],
+      CA2: [
+        { q: "Conjugue 'boire' à la 2e personne du pluriel.", a: "Vous buvez." },
+        { q: "Conjugue 'lire' à la 3e personne du singulier.", a: "Il lit." },
+        { q: "Conjugue 'écrire' à la 1re personne du pluriel.", a: "Nous écrivons." }
+      ],
+      CA3: [
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Il mange une pomme. »", a: "manger" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Nous finissons nos devoirs. »", a: "finir" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Elle prend un livre. »", a: "prendre" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Tu écris une lettre. »", a: "écrire" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Je bois un verre d’eau. »", a: "boire" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Vous voyez la mer. »", a: "voir" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Ils font du sport. »", a: "faire" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « L’enfant lit un conte. »", a: "lire" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Le chien court dans le jardin. »", a: "courir" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Vous dites la vérité. »", a: "dire" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Elles partent demain. »", a: "partir" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Il écrit un poème. »", a: "écrire" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Tu dors profondément. »", a: "dormir" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Je conduis une voiture. »", a: "conduire" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Nous envoyons une carte. »", a: "envoyer" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Les enfants jouent dehors. »", a: "jouer" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Il ouvre la fenêtre. »", a: "ouvrir" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Elles chantent très bien. »", a: "chanter" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Vous tenez votre promesse. »", a: "tenir" },
+  { q: "Quel est l’infinitif du verbe conjugué dans : « Je mets la table. »", a: "mettre" }
+],
+CA4: [
+  { q: "Conjugue au présent de l'indicatif : « se taire » à la 1ʳᵉ personne du singulier.", a: "je me tais" },
+  { q: "Conjugue au présent de l'indicatif : « paraître » à la 3ᵉ personne du singulier.", a: "il paraît" },
+  { q: "Conjugue au présent de l'indicatif : « convaincre » à la 1ʳᵉ personne du pluriel.", a: "nous convainquons" },
+  { q: "Conjugue au présent de l'indicatif : « lire » à la 2ᵉ personne du pluriel.", a: "vous lisez" },
+  { q: "Conjugue au présent de l'indicatif : « éclore » à la 3ᵉ personne du singulier.", a: "il éclot" },
+  { q: "Conjugue au présent de l'indicatif : « battre » à la 1ʳᵉ personne du singulier.", a: "je bats" },
+  { q: "Conjugue au présent de l'indicatif : « vaincre » à la 3ᵉ personne du pluriel.", a: "ils vainquent" },
+  { q: "Conjugue au présent de l'indicatif : « résoudre » à la 2ᵉ personne du singulier.", a: "tu résous" },
+  { q: "Conjugue au présent de l'indicatif : « dire » à la 1ʳᵉ personne du pluriel.", a: "nous disons" },
+  { q: "Conjugue au présent de l'indicatif : « écrire » à la 2ᵉ personne du singulier.", a: "tu écris" },
+  { q: "Conjugue au présent de l'indicatif : « suffire » à la 3ᵉ personne du singulier.", a: "il suffit" },
+  { q: "Conjugue au présent de l'indicatif : « courir » à la 2ᵉ personne du pluriel.", a: "vous courez" },
+  { q: "Conjugue au présent de l'indicatif : « craindre » à la 1ʳᵉ personne du pluriel.", a: "nous craignons" },
+  { q: "Conjugue au présent de l'indicatif : « prendre » à la 1ʳᵉ personne du singulier.", a: "je prends" },
+  { q: "Conjugue au présent de l'indicatif : « venir » à la 3ᵉ personne du pluriel.", a: "ils viennent" },
+  { q: "Conjugue au présent de l'indicatif : « ouvrir » à la 2ᵉ personne du pluriel.", a: "vous ouvrez" },
+  { q: "Conjugue au présent de l'indicatif : « suivre » à la 2ᵉ personne du singulier.", a: "tu suis" },
+  { q: "Conjugue au présent de l'indicatif : « mettre » à la 1ʳᵉ personne du pluriel.", a: "nous mettons" },
+  { q: "Conjugue au présent de l'indicatif : « pouvoir » à la 1ʳᵉ personne du singulier.", a: "je peux / je puis" },
+  { q: "Conjugue au présent de l'indicatif : « vouloir » à la 3ᵉ personne du singulier.", a: "il veut" }
+],
+      CB1: [
+        { q: "Conjugue 'parler' à l'imparfait, 1re personne du singulier.", a: "Je parlais." },
+        { q: "Conjugue 'finir' à l'imparfait, 2e personne du pluriel.", a: "Vous finissiez." },
+        { q: "Conjugue 'être' à l'imparfait, 3e personne du singulier.", a: "Il était." },
+        { q: "Conjugue 'parler' à l'imparfait, 1re personne du singulier.", a: "Je parlais." },
+  { q: "Conjugue 'manger' à l'imparfait, 3e personne du singulier.", a: "Il/Elle mangeait." },
+  { q: "Conjugue 'finir' à l'imparfait, 2e personne du singulier.", a: "Tu finissais." },
+  { q: "Conjugue 'prendre' à l'imparfait, 1re personne du pluriel.", a: "Nous prenions." },
+  { q: "Conjugue 'voir' à l'imparfait, 3e personne du pluriel.", a: "Ils/Elles voyaient." },
+  { q: "Conjugue 'aller' à l'imparfait, 2e personne du pluriel.", a: "Vous alliez." },
+  { q: "Conjugue 'faire' à l'imparfait, 1re personne du singulier.", a: "Je faisais." },
+  { q: "Conjugue 'venir' à l'imparfait, 3e personne du singulier.", a: "Il/Elle venait." },
+  { q: "Conjugue 'écrire' à l'imparfait, 1re personne du pluriel.", a: "Nous écrivions." },
+  { q: "Conjugue 'lire' à l'imparfait, 2e personne du singulier.", a: "Tu lisais." },
+  { q: "Conjugue 'vouloir' à l'imparfait, 3e personne du pluriel.", a: "Ils/Elles voulaient." },
+  { q: "Conjugue 'pouvoir' à l'imparfait, 1re personne du singulier.", a: "Je pouvais." },
+  { q: "Conjugue 'devoir' à l'imparfait, 2e personne du pluriel.", a: "Vous deviez." },
+  { q: "Conjugue 'savoir' à l'imparfait, 3e personne du singulier.", a: "Il/Elle savait." },
+  { q: "Conjugue 'boire' à l'imparfait, 1re personne du pluriel.", a: "Nous buvions." },
+  { q: "Conjugue 'courir' à l'imparfait, 3e personne du pluriel.", a: "Ils/Elles couraient." },
+  { q: "Conjugue 'dormir' à l'imparfait, 2e personne du singulier.", a: "Tu dormais." },
+  { q: "Conjugue 'sortir' à l'imparfait, 1re personne du singulier.", a: "Je sortais." },
+  { q: "Conjugue 'comprendre' à l'imparfait, 3e personne du singulier.", a: "Il/Elle comprenait." },
+  { q: "Conjugue 'jouer' à l'imparfait, 1re personne du pluriel.", a: "Nous jouions." }
+      ],
+      CB2: [
+  { q: "Conjugue à l’imparfait : « chanter » à la 1ʳᵉ personne du singulier.", a: "je chantais" },
+  { q: "Conjugue à l’imparfait : « finir » à la 3ᵉ personne du pluriel.", a: "ils finissaient" },
+  { q: "Conjugue à l’imparfait : « prendre » à la 2ᵉ personne du pluriel.", a: "vous preniez" },
+  { q: "Conjugue à l’imparfait : « voir » à la 1ʳᵉ personne du pluriel.", a: "nous voyions" },
+  { q: "Conjugue à l’imparfait : « venir » à la 3ᵉ personne du singulier.", a: "il venait" },
+  { q: "Conjugue à l’imparfait : « choisir » à la 2ᵉ personne du singulier.", a: "tu choisissais" },
+  { q: "Conjugue à l’imparfait : « aller » à la 1ʳᵉ personne du pluriel.", a: "nous allions" },
+  { q: "Conjugue à l’imparfait : « lire » à la 1ʳᵉ personne du singulier.", a: "je lisais" },
+  { q: "Conjugue à l’imparfait : « dire » à la 3ᵉ personne du pluriel.", a: "ils disaient" },
+  { q: "Conjugue à l’imparfait : « faire » à la 2ᵉ personne du pluriel.", a: "vous faisiez" },
+  { q: "Conjugue à l’imparfait : « avoir » à la 1ʳᵉ personne du singulier.", a: "j'avais" },
+  { q: "Conjugue à l’imparfait : « être » à la 3ᵉ personne du singulier.", a: "il était" },
+  { q: "Conjugue à l’imparfait : « écrire » à la 3ᵉ personne du pluriel.", a: "ils écrivaient" },
+  { q: "Conjugue à l’imparfait : « partir » à la 2ᵉ personne du singulier.", a: "tu partais" },
+  { q: "Conjugue à l’imparfait : « pouvoir » à la 1ʳᵉ personne du pluriel.", a: "nous pouvions" },
+  { q: "Conjugue à l’imparfait : « savoir » à la 3ᵉ personne du singulier.", a: "il savait" },
+  { q: "Conjugue à l’imparfait : « vouloir » à la 2ᵉ personne du pluriel.", a: "vous vouliez" },
+  { q: "Conjugue à l’imparfait : « vivre » à la 1ʳᵉ personne du singulier.", a: "je vivais" },
+  { q: "Conjugue à l’imparfait : « mettre » à la 3ᵉ personne du pluriel.", a: "ils mettaient" },
+  { q: "Conjugue à l’imparfait : « tenir » à la 1ʳᵉ personne du pluriel.", a: "nous tenions" }
+],
+
+      CB3: [
+        { q: "Conjugue 'parler' au conditionnel présent, 1re personne du singulier.", a: "Je parlerais." },
+  { q: "Conjugue 'manger' au conditionnel présent, 3e personne du singulier.", a: "Il/Elle mangerait." },
+  { q: "Conjugue 'finir' au conditionnel présent, 2e personne du singulier.", a: "Tu finirais." },
+  { q: "Conjugue 'prendre' au conditionnel présent, 1re personne du pluriel.", a: "Nous prendrions." },
+  { q: "Conjugue 'voir' au conditionnel présent, 3e personne du pluriel.", a: "Ils/Elles verraient." },
+  { q: "Conjugue 'aller' au conditionnel présent, 2e personne du pluriel.", a: "Vous iriez." },
+  { q: "Conjugue 'faire' au conditionnel présent, 1re personne du singulier.", a: "Je ferais." },
+  { q: "Conjugue 'venir' au conditionnel présent, 3e personne du singulier.", a: "Il/Elle viendrait." },
+  { q: "Conjugue 'vouloir' au conditionnel présent, 1re personne du pluriel.", a: "Nous voudrions." },
+  { q: "Conjugue 'pouvoir' au conditionnel présent, 2e personne du singulier.", a: "Tu pourrais." },
+  { q: "Conjugue 'devoir' au conditionnel présent, 3e personne du pluriel.", a: "Ils/Elles devraient." },
+  { q: "Conjugue 'savoir' au conditionnel présent, 1re personne du singulier.", a: "Je saurais." },
+  { q: "Conjugue 'boire' au conditionnel présent, 2e personne du pluriel.", a: "Vous boiriez." },
+  { q: "Conjugue 'jouer' au conditionnel présent, 3e personne du singulier.", a: "Il/Elle jouerait." },
+  { q: "Conjugue 'habiter' au conditionnel présent, 1re personne du pluriel.", a: "Nous habiterions." }
+      ],
+      CB4: [
+        { q: "Conjugue 'être' au conditionnel présent, 1re personne du pluriel.", a: "Nous serions." },
+        { q: "Conjugue 'avoir' au conditionnel présent, 3e personne du pluriel.", a: "Ils auraient." },
+        { q: "Conjugue 'acquérir' au conditionnel présent, 1re personne du singulier.", a: "J’acquerrais." },
+  { q: "Conjugue 'envoyer' au conditionnel présent, 3e personne du singulier.", a: "Il/Elle enverrait." },
+  { q: "Conjugue 'mourir' au conditionnel présent, 3e personne du pluriel.", a: "Ils/Elles mourraient." },
+  { q: "Conjugue 's’asseoir' au conditionnel présent, 1re personne du pluriel.", a: "Nous nous assiérions." },
+  { q: "Conjugue 'valoir' au conditionnel présent, 3e personne du singulier.", a: "Il/Elle vaudrait." },
+  { q: "Conjugue 'pleuvoir' au conditionnel présent, 3e personne du singulier.", a: "Il pleuvrait." },
+  { q: "Conjugue 'boire' au conditionnel présent, 2e personne du pluriel.", a: "Vous boiriez." },
+  { q: "Conjugue 'connaître' au conditionnel présent, 1re personne du singulier.", a: "Je connaîtrais." },
+  { q: "Conjugue 'se souvenir' au conditionnel présent, 3e personne du pluriel.", a: "Ils/Elles se souviendraient." },
+  { q: "Conjugue 'falloir' au conditionnel présent, 3e personne du singulier.", a: "Il faudrait." },
+  { q: "Conjugue 'voir' au conditionnel présent, 1re personne du pluriel.", a: "Nous verrions." },
+  { q: "Conjugue 'courir' au conditionnel présent, 2e personne du singulier.", a: "Tu courrais." },
+  { q: "Conjugue 'pouvoir' au conditionnel présent, 3e personne du pluriel.", a: "Ils/Elles pourraient." },
+  { q: "Conjugue 'vouloir' au conditionnel présent, 1re personne du singulier.", a: "Je voudrais." },
+  { q: "Conjugue 'aller' au conditionnel présent, 3e personne du singulier.", a: "Il/Elle irait." },
+  { q: "Conjugue 'faire' au conditionnel présent, 2e personne du pluriel.", a: "Vous feriez." },
+  { q: "Conjugue 'savoir' au conditionnel présent, 3e personne du singulier.", a: "Il/Elle saurait." },
+  { q: "Conjugue 'devoir' au conditionnel présent, 1re personne du pluriel.", a: "Nous devrions." },
+  { q: "Conjugue 'venir' au conditionnel présent, 3e personne du singulier.", a: "Il/Elle viendrait." },
+  { q: "Conjugue 'appeler' au conditionnel présent, 1re personne du pluriel.", a: "Nous appellerions." } 
+      ],
+      CB5: [
+        { q: "Conjugue 'partir' au conditionnel passé, 1re personne du singulier.", a: "Je serais parti." },
+        { q: "Conjugue 'terminer' au conditionnel passé, 2e personne du pluriel.", a: "Vous auriez terminé." },
+{ q: "Conjugue 'parler' au conditionnel passé, 1re personne du singulier.", a: "J'aurais parlé." },
+  { q: "Conjugue 'manger' au conditionnel passé, 3e personne du singulier.", a: "Il/Elle aurait mangé." },
+  { q: "Conjugue 'finir' au conditionnel passé, 2e personne du singulier.", a: "Tu aurais fini." },
+  { q: "Conjugue 'prendre' au conditionnel passé, 1re personne du pluriel.", a: "Nous aurions pris." },
+  { q: "Conjugue 'voir' au conditionnel passé, 3e personne du pluriel.", a: "Ils/Elles auraient vu." },
+  { q: "Conjugue 'aller' au conditionnel passé, 2e personne du pluriel.", a: "Vous seriez allé(e)(s)." },
+  { q: "Conjugue 'faire' au conditionnel passé, 1re personne du singulier.", a: "J'aurais fait." },
+  { q: "Conjugue 'venir' au conditionnel passé, 3e personne du singulier.", a: "Il/Elle serait venu(e)." },
+  { q: "Conjugue 'écrire' au conditionnel passé, 1re personne du pluriel.", a: "Nous aurions écrit." },
+  { q: "Conjugue 'lire' au conditionnel passé, 2e personne du singulier.", a: "Tu aurais lu." },
+  { q: "Conjugue 'vouloir' au conditionnel passé, 3e personne du pluriel.", a: "Ils/Elles auraient voulu." },
+  { q: "Conjugue 'pouvoir' au conditionnel passé, 1re personne du singulier.", a: "J'aurais pu." },
+  { q: "Conjugue 'devoir' au conditionnel passé, 2e personne du pluriel.", a: "Vous auriez dû." },
+  { q: "Conjugue 'savoir' au conditionnel passé, 3e personne du singulier.", a: "Il/Elle aurait su." },
+  { q: "Conjugue 'boire' au conditionnel passé, 1re personne du pluriel.", a: "Nous aurions bu." },
+  { q: "Conjugue 'courir' au conditionnel passé, 3e personne du pluriel.", a: "Ils/Elles auraient couru." },
+  { q: "Conjugue 'se lever' au conditionnel passé, 2e personne du singulier.", a: "Tu te serais levé(e)." },
+  { q: "Conjugue 'sortir' au conditionnel passé, 1re personne du singulier.", a: "Je serais sorti(e)." },
+  { q: "Conjugue 'comprendre' au conditionnel passé, 3e personne du singulier.", a: "Il/Elle aurait compris." },
+  { q: "Conjugue 'jouer' au conditionnel passé, 1re personne du pluriel.", a: "Nous aurions joué." }
+      ],
+CB6: [
+  { q: "Conjugue au plus-que-parfait : « finir » à la 1ʳᵉ personne du singulier.", a: "j'avais fini" },
+  { q: "Conjugue au plus-que-parfait : « partir » à la 3ᵉ personne du singulier.", a: "il était parti" },
+  { q: "Conjugue au plus-que-parfait : « rendre » à la 2ᵉ personne du pluriel.", a: "vous aviez rendu" },
+  { q: "Conjugue au plus-que-parfait : « choisir » à la 1ʳᵉ personne du pluriel.", a: "nous avions choisi" },
+  { q: "Conjugue au plus-que-parfait : « tomber » à la 3ᵉ personne du pluriel.", a: "ils étaient tombés" },
+  { q: "Conjugue au plus-que-parfait : « écrire » à la 2ᵉ personne du singulier.", a: "tu avais écrit" },
+  { q: "Conjugue au plus-que-parfait : « venir » à la 1ʳᵉ personne du pluriel.", a: "nous étions venus" },
+  { q: "Conjugue au plus-que-parfait : « lire » à la 3ᵉ personne du singulier.", a: "il avait lu" },
+  { q: "Conjugue au plus-que-parfait : « entrer » à la 2ᵉ personne du pluriel.", a: "vous étiez entrés" },
+  { q: "Conjugue au plus-que-parfait : « dire » à la 1ʳᵉ personne du singulier.", a: "j'avais dit" },
+  { q: "Conjugue au plus-que-parfait : « voir » à la 3ᵉ personne du pluriel.", a: "ils avaient vu" },
+  { q: "Conjugue au plus-que-parfait : « monter » à la 3ᵉ personne du singulier.", a: "elle était montée" },
+  { q: "Conjugue au plus-que-parfait : « prendre » à la 1ʳᵉ personne du pluriel.", a: "nous avions pris" },
+  { q: "Conjugue au plus-que-parfait : « arriver » à la 3ᵉ personne du singulier.", a: "il était arrivé" },
+  { q: "Conjugue au plus-que-parfait : « répondre » à la 1ʳᵉ personne du singulier.", a: "j'avais répondu" },
+  { q: "Conjugue au plus-que-parfait : « sortir » à la 2ᵉ personne du singulier.", a: "tu étais sorti" },
+  { q: "Conjugue au plus-que-parfait : « tenir » à la 3ᵉ personne du pluriel.", a: "ils avaient tenu" },
+  { q: "Conjugue au plus-que-parfait : « tomber » à la 1ʳᵉ personne du singulier.", a: "j'étais tombé" },
+  { q: "Conjugue au plus-que-parfait : « partir » à la 2ᵉ personne du pluriel.", a: "vous étiez partis" },
+  { q: "Conjugue au plus-que-parfait : « comprendre » à la 1ʳᵉ personne du pluriel.", a: "nous avions compris" }
+],
+
+      CC1: [
+  { q: "Conjugue 'parler' au futur simple, 1re personne du singulier.", a: "Je parlerai." },
+  { q: "Conjugue 'finir' au futur simple, 2e personne du singulier.", a: "Tu finiras." },
+  { q: "Conjugue 'prendre' au futur simple, 3e personne du singulier.", a: "Il prendra." },
+  { q: "Conjugue 'être' au futur simple, 1re personne du pluriel.", a: "Nous serons." },
+  { q: "Conjugue 'avoir' au futur simple, 2e personne du pluriel.", a: "Vous aurez." },
+  { q: "Conjugue 'aller' au futur simple, 3e personne du pluriel.", a: "Ils iront." },
+  { q: "Conjugue 'venir' au futur simple, 1re personne du singulier.", a: "Je viendrai." },
+  { q: "Conjugue 'faire' au futur simple, 2e personne du singulier.", a: "Tu feras." },
+  { q: "Conjugue 'voir' au futur simple, 3e personne du singulier.", a: "Il verra." },
+  { q: "Conjugue 'pouvoir' au futur simple, 1re personne du pluriel.", a: "Nous pourrons." },
+  { q: "Conjugue 'vouloir' au futur simple, 2e personne du pluriel.", a: "Vous voudrez." },
+  { q: "Conjugue 'devoir' au futur simple, 3e personne du pluriel.", a: "Ils devront." },
+  { q: "Conjugue 'savoir' au futur simple, 1re personne du singulier.", a: "Je saurai." },
+  { q: "Conjugue 'tenir' au futur simple, 2e personne du singulier.", a: "Tu tiendras." },
+  { q: "Conjugue 'envoyer' au futur simple, 3e personne du singulier.", a: "Il enverra." },
+  { q: "Conjugue 'mourir' au futur simple, 1re personne du pluriel.", a: "Nous mourrons." },
+  { q: "Conjugue 'courir' au futur simple, 2e personne du pluriel.", a: "Vous courrez." },
+  { q: "Conjugue 'recevoir' au futur simple, 3e personne du pluriel.", a: "Ils recevront." },
+  { q: "Conjugue 'falloir' au futur simple, 3e personne du singulier.", a: "Il faudra." },
+  { q: "Conjugue 'pleuvoir' au futur simple, 3e personne du singulier.", a: "Il pleuvra." }
+],
+      CC2: [
+  { q: "Conjugue 'croître' au futur simple, 1re personne du singulier.", a: "Je croîtrai." },
+  { q: "Conjugue 'vaincre' au futur simple, 2e personne du singulier.", a: "Tu vaincras." },
+  { q: "Conjugue 'résoudre' au futur simple, 3e personne du singulier.", a: "Il résoudra." },
+  { q: "Conjugue 'inclure' au futur simple, 1re personne du pluriel.", a: "Nous inclurons." },
+  { q: "Conjugue 'cuire' au futur simple, 2e personne du pluriel.", a: "Vous cuirez." },
+  { q: "Conjugue 'taire' au futur simple, 3e personne du pluriel.", a: "Ils tairont." },
+  { q: "Conjugue 'mouvoir' au futur simple, 1re personne du singulier.", a: "Je mouvoirai." },
+  { q: "Conjugue 'conquérir' au futur simple, 2e personne du singulier.", a: "Tu conquerras." },
+  { q: "Conjugue 'valoir' au futur simple, 3e personne du singulier.", a: "Il vaudra." },
+  { q: "Conjugue 'acquérir' au futur simple, 1re personne du pluriel.", a: "Nous acquerrons." },
+  { q: "Conjugue 'fuir' au futur simple, 2e personne du pluriel.", a: "Vous fuirez." },
+  { q: "Conjugue 'joindre' au futur simple, 3e personne du pluriel.", a: "Ils joindront." },
+  { q: "Conjugue 'pleuvoir' au futur simple, 3e personne du singulier.", a: "Il pleuvra." },
+  { q: "Conjugue 'falloir' au futur simple, 3e personne du singulier.", a: "Il faudra." },
+  { q: "Conjugue 'asseoir' au futur simple, 1re personne du singulier.", a: "Je m’assiérai." },
+  { q: "Conjugue 's'émouvoir' au futur simple, 2e personne du singulier.", a: "Tu t’émouvras." },
+  { q: "Conjugue 'prévoir' au futur simple, 3e personne du singulier.", a: "Il prévoira." },
+  { q: "Conjugue 'soutenir' au futur simple, 1re personne du pluriel.", a: "Nous soutiendrons." },
+  { q: "Conjugue 's'inscrire' au futur simple, 2e personne du pluriel.", a: "Vous vous inscrirez." },
+  { q: "Conjugue 'reparaître' au futur simple, 3e personne du pluriel.", a: "Ils reparaitront." }
+],
+      CC3: [
+  { q: "Conjugue 'finir' au futur antérieur, 1re personne du singulier.", a: "J'aurai fini." },
+  { q: "Conjugue 'partir' au futur antérieur, 2e personne du singulier.", a: "Tu seras parti." },
+  { q: "Conjugue 'être' au futur antérieur, 3e personne du singulier.", a: "Il aura été." },
+  { q: "Conjugue 'avoir' au futur antérieur, 1re personne du pluriel.", a: "Nous aurons eu." },
+  { q: "Conjugue 'venir' au futur antérieur, 2e personne du pluriel.", a: "Vous serez venus." },
+  { q: "Conjugue 'savoir' au futur antérieur, 3e personne du pluriel.", a: "Ils auront su." },
+  { q: "Conjugue 'tomber' au futur antérieur, 1re personne du singulier (féminin).", a: "Je serai tombée." },
+  { q: "Conjugue 'réussir' au futur antérieur, 2e personne du singulier.", a: "Tu auras réussi." },
+  { q: "Conjugue 'se lever' au futur antérieur, 1re personne du pluriel.", a: "Nous nous serons levés." },
+  { q: "Conjugue 'recevoir' au futur antérieur, 3e personne du singulier.", a: "Il aura reçu." },
+  { q: "Conjugue 'aller' au futur antérieur, 2e personne du pluriel.", a: "Vous serez allés." },
+  { q: "Conjugue 'mourir' au futur antérieur, 1re personne du singulier.", a: "Je serai mort." },
+  { q: "Conjugue 'dire' au futur antérieur, 3e personne du pluriel.", a: "Ils auront dit." },
+  { q: "Conjugue 'mettre' au futur antérieur, 1re personne du singulier.", a: "J'aurai mis." },
+  { q: "Conjugue 'ouvrir' au futur antérieur, 2e personne du singulier.", a: "Tu auras ouvert." },
+  { q: "Conjugue 'se coucher' au futur antérieur, 1re personne du singulier (féminin).", a: "Je me serai couchée." },
+  { q: "Conjugue 'voir' au futur antérieur, 3e personne du singulier.", a: "Il aura vu." },
+  { q: "Conjugue 'envoyer' au futur antérieur, 2e personne du pluriel.", a: "Vous aurez envoyé." },
+  { q: "Conjugue 'revenir' au futur antérieur, 1re personne du pluriel.", a: "Nous serons revenus." },
+  { q: "Conjugue 'tenir' au futur antérieur, 3e personne du pluriel.", a: "Ils auront tenu." }
+],
+      CD1: [ 
+      { q: "Conjugue 'être' au présent, 1re personne du singulier.", a: "Je suis." },
+  { q: "Conjugue 'être' au présent, 2e personne du singulier.", a: "Tu es." },
+  { q: "Conjugue 'être' au présent, 3e personne du singulier.", a: "Il/Elle est." },
+  { q: "Conjugue 'être' au présent, 1re personne du pluriel.", a: "Nous sommes." },
+  { q: "Conjugue 'être' au présent, 2e personne du pluriel.", a: "Vous êtes." },
+  { q: "Conjugue 'être' au présent, 3e personne du pluriel.", a: "Ils/Elles sont." },
+
+  { q: "Conjugue 'avoir' au présent, 1re personne du singulier.", a: "J'ai." },
+  { q: "Conjugue 'avoir' au présent, 2e personne du singulier.", a: "Tu as." },
+  { q: "Conjugue 'avoir' au présent, 3e personne du singulier.", a: "Il/Elle a." },
+  { q: "Conjugue 'avoir' au présent, 1re personne du pluriel.", a: "Nous avons." },
+  { q: "Conjugue 'avoir' au présent, 2e personne du pluriel.", a: "Vous avez." },
+  { q: "Conjugue 'avoir' au présent, 3e personne du pluriel.", a: "Ils/Elles ont." },
+   ],
+      CD2: [
+  { q: "Conjugue 'manger' au passé composé, 1re personne du singulier.", a: "J'ai mangé." },
+  { q: "Conjugue 'finir' au passé composé, 2e personne du pluriel.", a: "Vous avez fini." },
+  { q: "Conjugue 'prendre' au passé composé, 3e personne du singulier.", a: "Il a pris." },
+  { q: "Conjugue 'aller' au passé composé, 1re personne du pluriel.", a: "Nous sommes allés." },
+  { q: "Conjugue 'venir' au passé composé, 2e personne du singulier.", a: "Tu es venu." },
+  { q: "Conjugue 'voir' au passé composé, 3e personne du pluriel.", a: "Ils ont vu." },
+  { q: "Conjugue 'faire' au passé composé, 1re personne du singulier.", a: "J'ai fait." },
+  { q: "Conjugue 'dire' au passé composé, 2e personne du pluriel.", a: "Vous avez dit." },
+  { q: "Conjugue 'partir' au passé composé, 3e personne du singulier.", a: "Elle est partie." },
+  { q: "Conjugue 'sortir' au passé composé, 1re personne du pluriel.", a: "Nous sommes sortis." },
+  { q: "Conjugue 'mettre' au passé composé, 2e personne du singulier.", a: "Tu as mis." },
+  { q: "Conjugue 'lire' au passé composé, 3e personne du pluriel.", a: "Ils ont lu." },
+  { q: "Conjugue 'écrire' au passé composé, 1re personne du singulier.", a: "J'ai écrit." },
+  { q: "Conjugue 'devenir' au passé composé, 2e personne du pluriel.", a: "Vous êtes devenus." },
+  { q: "Conjugue 'mourir' au passé composé, 3e personne du singulier.", a: "Il est mort." },
+  { q: "Conjugue 'ouvrir' au passé composé, 1re personne du pluriel.", a: "Nous avons ouvert." },
+  { q: "Conjugue 'prendre' au passé composé, 2e personne du singulier.", a: "Tu as pris." },
+  { q: "Conjugue 'dire' au passé composé, 3e personne du pluriel.", a: "Elles ont dit." },
+  { q: "Conjugue 'arriver' au passé composé, 1re personne du singulier.", a: "Je suis arrivé." },
+  { q: "Conjugue 'recevoir' au passé composé, 2e personne du pluriel.", a: "Vous avez reçu." }
+],
+      CD3: [
+  { q: "Conjugue 'se lever' au passé composé, 1re personne du singulier.", a: "Je me suis levé(e)." },
+  { q: "Conjugue 'conduire' au passé composé, 2e personne du pluriel.", a: "Vous avez conduit." },
+  { q: "Conjugue 'se souvenir' au passé composé, 3e personne du singulier.", a: "Il/Elle s'est souvenu(e)." },
+  { q: "Conjugue 'mourir' au passé composé, 1re personne du pluriel.", a: "Nous sommes morts/mortes." },
+  { q: "Conjugue 's'habiller' au passé composé, 2e personne du singulier.", a: "Tu t'es habillé(e)." },
+  { q: "Conjugue 'venir' au passé composé, 3e personne du pluriel.", a: "Ils/Elles sont venus/venues." },
+  { q: "Conjugue 'se dépêcher' au passé composé, 1re personne du singulier.", a: "Je me suis dépêché(e)." },
+  { q: "Conjugue 'prendre' au passé composé, 2e personne du pluriel.", a: "Vous avez pris." },
+  { q: "Conjugue 'se reposer' au passé composé, 3e personne du singulier.", a: "Il/Elle s'est reposé(e)." },
+  { q: "Conjugue 'ouvrir' au passé composé, 1re personne du pluriel.", a: "Nous avons ouvert." },
+  { q: "Conjugue 'se tromper' au passé composé, 2e personne du singulier.", a: "Tu t'es trompé(e)." },
+  { q: "Conjugue 'savoir' au passé composé, 3e personne du pluriel.", a: "Ils/Elles ont su." },
+  { q: "Conjugue 'se marier' au passé composé, 1re personne du singulier.", a: "Je me suis marié(e)." },
+  { q: "Conjugue 'sortir' au passé composé, 2e personne du pluriel.", a: "Vous êtes sorti(e)(s)." },
+  { q: "Conjugue 'se coucher' au passé composé, 3e personne du singulier.", a: "Il/Elle s'est couché(e)." },
+  { q: "Conjugue 'dire' au passé composé, 1re personne du pluriel.", a: "Nous avons dit." },
+  { q: "Conjugue 'se moquer' au passé composé, 2e personne du singulier.", a: "Tu t'es moqué(e)." },
+  { q: "Conjugue 'aller' au passé composé, 3e personne du pluriel.", a: "Ils/Elles sont allé(e)s." },
+  { q: "Conjugue 'se plaindre' au passé composé, 1re personne du singulier.", a: "Je me suis plaint(e)." },
+  { q: "Conjugue 'écrire' au passé composé, 2e personne du pluriel.", a: "Vous avez écrit." }
+],
+      CE1: [
+  { q: "Conjugue 'aimer' au passé simple, 1re personne du singulier.", a: "J'aimai." },
+  { q: "Conjugue 'chanter' au passé simple, 3e personne du pluriel.", a: "Ils chantèrent." },
+  { q: "Conjugue 'marcher' au passé simple, 2e personne du singulier.", a: "Tu marchas." },
+  { q: "Conjugue 'parler' au passé simple, 1re personne du pluriel.", a: "Nous parlâmes." },
+  { q: "Conjugue 'travailler' au passé simple, 3e personne du singulier.", a: "Il travailla." },
+  { q: "Conjugue 'finir' au passé simple, 2e personne du pluriel.", a: "Vous finîtes." },
+  { q: "Conjugue 'choisir' au passé simple, 3e personne du pluriel.", a: "Ils choisirent." },
+  { q: "Conjugue 'réussir' au passé simple, 1re personne du singulier.", a: "Je réussis." },
+  { q: "Conjugue 'vendre' au passé simple, 2e personne du singulier.", a: "Tu vendis." },
+  { q: "Conjugue 'attendre' au passé simple, 3e personne du pluriel.", a: "Ils attendirent." },
+  { q: "Conjugue 'perdre' au passé simple, 1re personne du pluriel.", a: "Nous perdîmes." },
+  { q: "Conjugue 'répondre' au passé simple, 3e personne du singulier.", a: "Il répondit." },
+  { q: "Conjugue 'manger' au passé simple, 2e personne du pluriel.", a: "Vous mangeâtes." },
+  { q: "Conjugue 'nager' au passé simple, 1re personne du singulier.", a: "Je nageai." },
+  { q: "Conjugue 'courir' au passé simple, 3e personne du pluriel.", a: "Ils coururent." },
+  { q: "Conjugue 'venir' au passé simple, 2e personne du singulier.", a: "Tu vins." },
+  { q: "Conjugue 'voir' au passé simple, 1re personne du pluriel.", a: "Nous vîmes." },
+  { q: "Conjugue 'prendre' au passé simple, 3e personne du singulier.", a: "Il prit." },
+  { q: "Conjugue 'mettre' au passé simple, 2e personne du pluriel.", a: "Vous mîtes." },
+  { q: "Conjugue 'dire' au passé simple, 1re personne du singulier.", a: "Je dis." }
+],
+      CE2: [
+  { q: "Conjugue 'être' au passé simple, 1re personne du singulier.", a: "Je fus." },
+  { q: "Conjugue 'avoir' au passé simple, 3e personne du pluriel.", a: "Ils eurent." },
+  { q: "Conjugue 'être' au passé simple, 2e personne du pluriel.", a: "Vous fûtes." },
+  { q: "Conjugue 'avoir' au passé simple, 1re personne du pluriel.", a: "Nous eûmes." },
+  { q: "Conjugue 'aller' au passé simple, 3e personne du singulier.", a: "Il alla." },
+  { q: "Conjugue 'venir' au passé simple, 2e personne du singulier.", a: "Tu vins." },
+  { q: "Conjugue 'faire' au passé simple, 1re personne du singulier.", a: "Je fis." },
+  { q: "Conjugue 'laisser' au passé simple, 3e personne du pluriel.", a: "Ils laissèrent." },
+  { q: "Conjugue 'aller' au passé simple, 1re personne du pluriel.", a: "Nous allâmes." },
+  { q: "Conjugue 'venir' au passé simple, 2e personne du pluriel.", a: "Vous vîntes." },
+  { q: "Conjugue 'faire' au passé simple, 3e personne du pluriel.", a: "Ils firent." },
+  { q: "Conjugue 'laisser' au passé simple, 1re personne du singulier.", a: "Je laissai." },
+  { q: "Conjugue 'être' au passé simple, 3e personne du pluriel.", a: "Ils furent." },
+  { q: "Conjugue 'avoir' au passé simple, 2e personne du singulier.", a: "Tu eus." },
+  { q: "Conjugue 'aller' au passé simple, 3e personne du pluriel.", a: "Ils allèrent." },
+  { q: "Conjugue 'venir' au passé simple, 1re personne du singulier.", a: "Je vins." },
+  { q: "Conjugue 'faire' au passé simple, 2e personne du pluriel.", a: "Vous fîtes." },
+  { q: "Conjugue 'laisser' au passé simple, 3e personne du singulier.", a: "Il laissa." },
+  { q: "Conjugue 'être' au passé simple, 1re personne du pluriel.", a: "Nous fûmes." },
+  { q: "Conjugue 'avoir' au passé simple, 3e personne du singulier.", a: "Il eut." }
+],
+      CE3: [
+  { q: "Conjugue 'vaincre' au passé simple, 1re personne du singulier.", a: "Je vainquis." },
+  { q: "Conjugue 'conduire' au passé simple, 3e personne du pluriel.", a: "Ils conduisirent." },
+  { q: "Conjugue 'peindre' au passé simple, 2e personne du singulier.", a: "Tu peignis." },
+  { q: "Conjugue 'cueillir' au passé simple, 1re personne du pluriel.", a: "Nous cueillîmes." },
+  { q: "Conjugue 'battre' au passé simple, 3e personne du singulier.", a: "Il battit." },
+  { q: "Conjugue 'mettre' au passé simple, 2e personne du pluriel.", a: "Vous mîtes." },
+  { q: "Conjugue 'plaire' au passé simple, 3e personne du pluriel.", a: "Ils plurent." },
+  { q: "Conjugue 'fuir' au passé simple, 1re personne du singulier.", a: "Je fuis." },
+  { q: "Conjugue 'joindre' au passé simple, 2e personne du singulier.", a: "Tu joignis." },
+  { q: "Conjugue 'mourir' au passé simple, 3e personne du pluriel.", a: "Ils moururent." },
+  { q: "Conjugue 'offrir' au passé simple, 1re personne du pluriel.", a: "Nous offrîmes." },
+  { q: "Conjugue 'réduire' au passé simple, 3e personne du singulier.", a: "Il réduisit." },
+  { q: "Conjugue 'tordre' au passé simple, 2e personne du pluriel.", a: "Vous tordîtes." },
+  { q: "Conjugue 'taire' au passé simple, 3e personne du pluriel.", a: "Ils turent." },
+  { q: "Conjugue 'valoir' au passé simple, 1re personne du singulier.", a: "Je valus." },
+  { q: "Conjugue 'vivre' au passé simple, 2e personne du singulier.", a: "Tu vécus." },
+  { q: "Conjugue 'boire' au passé simple, 3e personne du pluriel.", a: "Ils burent." },
+  { q: "Conjugue 'craindre' au passé simple, 1re personne du pluriel.", a: "Nous craignîmes." },
+  { q: "Conjugue 'dire' au passé simple, 3e personne du singulier.", a: "Il dit." },
+  { q: "Conjugue 'écrire' au passé simple, 2e personne du pluriel.", a: "Vous écrivîtes." }
+],
+CE4: [
+  { q: "Conjugue 'sourdre' au passé simple, 1re personne du singulier.", a: "Je sourdis." },
+  { q: "Conjugue 'clore' au passé simple, 3e personne du pluriel.", a: "Ils closrent." },
+  { q: "Conjugue 'déréagir' au passé simple, 2e personne du singulier.", a: "Tu déréagis." },
+  { q: "Conjugue 's'abstenir' au passé simple, 1re personne du pluriel.", a: "Nous nous abstînmes." },
+  { q: "Conjugue 'se vêtir' au passé simple, 3e personne du singulier.", a: "Il se vêtit." },
+  { q: "Conjugue 'fendre' au passé simple, 2e personne du pluriel.", a: "Vous fendîtes." },
+  { q: "Conjugue 'pendre' au passé simple, 3e personne du pluriel.", a: "Ils pendirent." },
+  { q: "Conjugue 'résoudre' au passé simple, 1re personne du singulier.", a: "Je résolus." },
+  { q: "Conjugue 'surprendre' au passé simple, 2e personne du singulier.", a: "Tu surpris." },
+  { q: "Conjugue 'éteindre' au passé simple, 3e personne du pluriel.", a: "Ils éteignirent." },
+  { q: "Conjugue 'arracher' au passé simple, 1re personne du pluriel.", a: "Nous arrachâmes." },
+  { q: "Conjugue 'moudre' au passé simple, 3e personne du singulier.", a: "Il moulut." },
+  { q: "Conjugue 'sourire' au passé simple, 2e personne du pluriel.", a: "Vous sourîtes." },
+  { q: "Conjugue 'suffire' au passé simple, 3e personne du pluriel.", a: "Ils surent." },
+  { q: "Conjugue 'se taire' au passé simple, 1re personne du singulier.", a: "Je me tus." },
+  { q: "Conjugue 'vaincre' au passé simple, 2e personne du singulier.", a: "Tu vainquis." },
+  { q: "Conjugue 'se plaire' au passé simple, 3e personne du pluriel.", a: "Ils se plurent." },
+  { q: "Conjugue 'croître' au passé simple, 1re personne du pluriel.", a: "Nous crûmes." },
+  { q: "Conjugue 'se mouvoir' au passé simple, 3e personne du singulier.", a: "Il se mouvut." },
+  { q: "Conjugue 'résoudre' au passé simple, 2e personne du pluriel.", a: "Vous résolûtes." }
+],
+      CE5: [
+  { q: "Conjugue 'parler' au passé antérieur, 1re personne du singulier.", a: "J'eus parlé." },
+  { q: "Conjugue 'finir' au passé antérieur, 3e personne du pluriel.", a: "Ils eurent fini." },
+  { q: "Conjugue 'prendre' au passé antérieur, 2e personne du singulier.", a: "Tu eus pris." },
+  { q: "Conjugue 'venir' au passé antérieur, 1re personne du pluriel.", a: "Nous fûmes venus." },
+  { q: "Conjugue 'manger' au passé antérieur, 3e personne du singulier.", a: "Il eut mangé." },
+  { q: "Conjugue 'aller' au passé antérieur, 2e personne du pluriel.", a: "Vous fûtes allés." },
+  { q: "Conjugue 'écrire' au passé antérieur, 1re personne du singulier.", a: "J'eus écrit." },
+  { q: "Conjugue 'dire' au passé antérieur, 3e personne du pluriel.", a: "Ils eurent dit." },
+  { q: "Conjugue 'faire' au passé antérieur, 2e personne du singulier.", a: "Tu eus fait." },
+  { q: "Conjugue 'savoir' au passé antérieur, 1re personne du pluriel.", a: "Nous eûmes su." },
+  { q: "Conjugue 'sortir' au passé antérieur, 3e personne du singulier.", a: "Il fut sorti." },
+  { q: "Conjugue 'voir' au passé antérieur, 2e personne du pluriel.", a: "Vous eûtes vu." },
+  { q: "Conjugue 'boire' au passé antérieur, 1re personne du singulier.", a: "J'eus bu." },
+  { q: "Conjugue 'courir' au passé antérieur, 3e personne du pluriel.", a: "Ils eurent couru." },
+  { q: "Conjugue 'prendre' au passé antérieur, 2e personne du singulier.", a: "Tu eus pris." },
+  { q: "Conjugue 'dire' au passé antérieur, 1re personne du pluriel.", a: "Nous eûmes dit." },
+  { q: "Conjugue 'partir' au passé antérieur, 3e personne du singulier.", a: "Il fut parti." },
+  { q: "Conjugue 'vivre' au passé antérieur, 2e personne du pluriel.", a: "Vous eûtes vécu." },
+  { q: "Conjugue 'mettre' au passé antérieur, 1re personne du singulier.", a: "J'eus mis." },
+  { q: "Conjugue 'croire' au passé antérieur, 3e personne du pluriel.", a: "Ils eurent cru." }
+],
+      CF2: [
+  { q: "À quel groupe appartient le verbe « chanter » ?", a: "1er groupe" },
+  { q: "À quel groupe appartient le verbe « finir » ?", a: "2e groupe" },
+  { q: "À quel groupe appartient le verbe « prendre » ?", a: "3e groupe" },
+  { q: "À quel groupe appartient le verbe « choisir » ?", a: "2e groupe" },
+  { q: "À quel groupe appartient le verbe « aller » ?", a: "3e groupe" },
+  { q: "À quel groupe appartient le verbe « partir » ?", a: "3e groupe" },
+  { q: "À quel groupe appartient le verbe « parler » ?", a: "1er groupe" },
+  { q: "À quel groupe appartient le verbe « haïr » ?", a: "2e groupe" },
+  { q: "À quel groupe appartient le verbe « venir » ?", a: "3e groupe" },
+  { q: "À quel groupe appartient le verbe « rougir » ?", a: "2e groupe" },
+  { q: "À quel groupe appartient le verbe « faire » ?", a: "3e groupe" },
+  { q: "À quel groupe appartient le verbe « jouer » ?", a: "1er groupe" },
+  { q: "À quel groupe appartient le verbe « courir » ?", a: "3e groupe" },
+  { q: "À quel groupe appartient le verbe « nourrir » ?", a: "2e groupe" },
+  { q: "À quel groupe appartient le verbe « savoir » ?", a: "3e groupe" },
+  { q: "À quel groupe appartient le verbe « créer » ?", a: "1er groupe" },
+  { q: "À quel groupe appartient le verbe « dormir » ?", a: "3e groupe" },
+  { q: "À quel groupe appartient le verbe « remplir » ?", a: "2e groupe" },
+  { q: "À quel groupe appartient le verbe « lire » ?", a: "3e groupe" },
+  { q: "À quel groupe appartient le verbe « aimer » ?", a: "1er groupe" }
+],
+      CF3: [
+  { q: "Détermine la personne et le nombre du sujet : « Je regarde un film. »", a: "1re personne du singulier" },
+  { q: "Détermine la personne et le nombre du sujet : « Tu joues au ballon. »", a: "2e personne du singulier" },
+  { q: "Détermine la personne et le nombre du sujet : « Il mange une pomme. »", a: "3e personne du singulier" },
+  { q: "Détermine la personne et le nombre du sujet : « Nous partons bientôt. »", a: "1re personne du pluriel" },
+  { q: "Détermine la personne et le nombre du sujet : « Vous finissez vos devoirs. »", a: "2e personne du pluriel" },
+  { q: "Détermine la personne et le nombre du sujet : « Elles chantent bien. »", a: "3e personne du pluriel" },
+  { q: "Détermine la personne et le nombre du sujet : « Mon frère lit un livre. »", a: "3e personne du singulier" },
+  { q: "Détermine la personne et le nombre du sujet : « Les enfants courent dans la cour. »", a: "3e personne du pluriel" },
+  { q: "Détermine la personne et le nombre du sujet : « Marie et moi allons au cinéma. »", a: "1re personne du pluriel" },
+  { q: "Détermine la personne et le nombre du sujet : « Toi et lui jouez ensemble. »", a: "2e personne du pluriel" },
+  { q: "Détermine la personne et le nombre du sujet : « Le professeur parle doucement. »", a: "3e personne du singulier" },
+  { q: "Détermine la personne et le nombre du sujet : « Je rêve souvent. »", a: "1re personne du singulier" },
+  { q: "Détermine la personne et le nombre du sujet : « Tu marches vite. »", a: "2e personne du singulier" },
+  { q: "Détermine la personne et le nombre du sujet : « Ils nagent dans la piscine. »", a: "3e personne du pluriel" },
+  { q: "Détermine la personne et le nombre du sujet : « Nous jouons aux cartes. »", a: "1re personne du pluriel" },
+  { q: "Détermine la personne et le nombre du sujet : « Vous regardez un film. »", a: "2e personne du pluriel" },
+  { q: "Détermine la personne et le nombre du sujet : « Elle écoute la radio. »", a: "3e personne du singulier" },
+  { q: "Détermine la personne et le nombre du sujet : « Paul et Julie révisent ensemble. »", a: "3e personne du pluriel" },
+  { q: "Détermine la personne et le nombre du sujet : « Moi, je fais du vélo. »", a: "1re personne du singulier" },
+  { q: "Détermine la personne et le nombre du sujet : « Vous et moi sommes amis. »", a: "1re personne du pluriel" }
+],
+      CG1: [
+  { q: "Donne l'impératif présent de 'parler' à la 2e personne du singulier.", a: "Parle !" },
+  { q: "Donne l'impératif présent de 'finir' à la 1re personne du pluriel.", a: "Finissons !" },
+  { q: "Donne l'impératif présent de 'prendre' à la 2e personne du pluriel.", a: "Prenez !" },
+  { q: "Donne l'impératif présent de 'aller' à la 2e personne du singulier.", a: "Va !" },
+  { q: "Donne l'impératif présent de 'avoir' à la 2e personne du singulier.", a: "Aie !" },
+  { q: "Donne l'impératif présent de 'être' à la 1re personne du pluriel.", a: "Soyons !" },
+  { q: "Donne l'impératif présent de 'savoir' à la 2e personne du pluriel.", a: " Sachez !" },
+  { q: "Donne l'impératif présent de 'dire' à la 2e personne du singulier.", a: "Dis !" },
+  { q: "Donne l'impératif présent de 'faire' à la 1re personne du pluriel.", a: "Faisons !" },
+  { q: "Donne l'impératif présent de 'venir' à la 2e personne du pluriel.", a: "Venez !" },
+  { q: "Donne l'impératif présent de 'mettre' à la 2e personne du singulier.", a: "Mets !" },
+  { q: "Donne l'impératif présent de 'écouter' à la 2e personne du pluriel.", a: "Écoutez !" },
+  { q: "Donne l'impératif présent de 'finir' à la 2e personne du singulier.", a: "Finis !" },
+  { q: "Donne l'impératif présent de 'lire' à la 1re personne du pluriel.", a: "Lisons !" },
+  { q: "Donne l'impératif présent de 'prendre' à la 2e personne du pluriel.", a: "Prenez !" },
+  { q: "Donne l'impératif présent de 'aller' à la 1re personne du pluriel.", a: "Allons !" },
+  { q: "Donne l'impératif présent de 'avoir' à la 2e personne du pluriel.", a: "Ayez !" },
+  { q: "Donne l'impératif présent de 'être' à la 2e personne du singulier.", a: "Sois !" },
+  { q: "Donne l'impératif présent de 'savoir' à la 1re personne du pluriel.", a: "Sachons !" },
+  { q: "Donne l'impératif présent de 'dire' à la 2e personne du pluriel.", a: "Dites !" }
+],
+CH1: [
+  { q: "Quelle est la valeur du présent dans : « Je t’attends devant la porte. » ?", a: "présent d’énonciation" },
+  { q: "Quelle est la valeur du présent dans : « Il arrive ! Dépêche-toi ! » ?", a: "futur proche" },
+  { q: "Quelle est la valeur du présent dans : « Je pars demain pour Paris. » ?", a: "futur proche" },
+  { q: "Quelle est la valeur du présent dans : « Le soleil se couche à l’ouest. » ?", a: "vérité générale" },
+  { q: "Quelle est la valeur du présent dans : « Chaque matin, elle boit un chocolat chaud. » ?", a: "habitude" },
+  { q: "Quelle est la valeur du présent dans : « Louis XIV meurt en 1715. » ?", a: "présent historique" },
+  { q: "Quelle est la valeur du présent dans : « Il sort juste de la salle. » ?", a: "passé proche" },
+  { q: "Quelle est la valeur du présent dans : « Je t’explique la règle. » ?", a: "énonciation" },
+  { q: "Quelle est la valeur du présent dans : « Les trains circulent régulièrement. » ?", a: "habitude" },
+  { q: "Quelle est la valeur du présent dans : « Le feu brûle. » ?", a: "vérité générale" },
+  { q: "Quelle est la valeur du présent dans : « Je viens de finir mes devoirs. » ?", a: "passé proche" },
+  { q: "Quelle est la valeur du présent dans : « Le héros s'avance et affronte le dragon. » ?", a: "présent historique" },
+  { q: "Quelle est la valeur du présent dans : « Nous partons dans cinq minutes. » ?", a: "futur proche" },
+  { q: "Quelle est la valeur du présent dans : « Je suis à la bibliothèque. » ?", a: "énonciation" },
+  { q: "Quelle est la valeur du présent dans : « Les élèves révisent souvent leurs leçons. » ?", a: "habitude" },
+  { q: "Quelle est la valeur du présent dans : « L’eau bout à 100°C. » ?", a: "vérité générale" },
+  { q: "Quelle est la valeur du présent dans : « Le général donne l’assaut en 1916. » ?", a: "présent historique" },
+  { q: "Quelle est la valeur du présent dans : « Je viens juste d’apprendre la nouvelle. » ?", a: "passé proche" },
+  { q: "Quelle est la valeur du présent dans : « Je téléphone à Paul. » ?", a: "présent d’énonciation" },
+  { q: "Quelle est la valeur du présent dans : « Elle prend toujours un thé le soir. » ?", a: "habitude" }
+],
+CH2: [
+  { q: "Quelle est la valeur du présent dans : « Je ne comprends pas ce que tu veux dire. » ?", a: "énonciation" },
+  { q: "Quelle est la valeur du présent dans : « Il entre dans la classe, s'assoit et ouvre son cahier. » ?", a: "narration" },
+  { q: "Quelle est la valeur du présent dans : « L’eau bout à 100°C. » ?", a: "vérité générale" },
+  { q: "Quelle est la valeur du présent dans : « Je t’attends devant l'école. » ?", a: "énonciation" },
+  { q: "Quelle est la valeur du présent dans : « Le héros prend son épée et affronte le monstre. » ?", a: "narration" },
+  { q: "Quelle est la valeur du présent dans : « La Terre tourne autour du Soleil. » ?", a: "vérité générale" },
+  { q: "Quelle est la valeur du présent dans : « Je ne sais pas quoi répondre. » ?", a: "énonciation" },
+  { q: "Quelle est la valeur du présent dans : « Il lève son arme et tire sans hésiter. » ?", a: "narration" },
+  { q: "Quelle est la valeur du présent dans : « Le feu brûle et la glace fond. » ?", a: "vérité générale" },
+  { q: "Quelle est la valeur du présent dans : « J’arrive dans cinq minutes. » ?", a: "énonciation" },
+  { q: "Quelle est la valeur du présent dans : « Le général avance, observe l’ennemi et ordonne l’assaut. » ?", a: "narration" },
+  { q: "Quelle est la valeur du présent dans : « Les saisons se succèdent chaque année. » ?", a: "vérité générale" },
+  { q: "Quelle est la valeur du présent dans : « Je n’entends plus rien. » ?", a: "énonciation" },
+  { q: "Quelle est la valeur du présent dans : « Le voleur franchit la fenêtre et disparaît. » ?", a: "narration" },
+  { q: "Quelle est la valeur du présent dans : « Les chats voient très bien dans le noir. » ?", a: "vérité générale" },
+  { q: "Quelle est la valeur du présent dans : « Je pense que tu as raison. » ?", a: "énonciation" },
+  { q: "Quelle est la valeur du présent dans : « Il pousse la porte, entre et découvre la pièce. » ?", a: "narration" },
+  { q: "Quelle est la valeur du présent dans : « Le métal conduit la chaleur. » ?", a: "vérité générale" }
+],
+CJ3: [
+  { q: "Conjugue au passé composé : « marcher » à la 1ʳᵉ personne du pluriel.", a: "nous avons marché" },
+  { q: "Conjugue au passé composé : « courir » à la 3ᵉ personne du pluriel.", a: "ils ont couru" },
+  { q: "Conjugue au passé composé : « téléphoner » à la 2ᵉ personne du singulier.", a: "tu as téléphoné" },
+  { q: "Conjugue au passé composé : « parler » à la 1ʳᵉ personne du singulier.", a: "j'ai parlé" },
+  { q: "Conjugue au passé composé : « dormir » à la 3ᵉ personne du singulier.", a: "il a dormi" },
+  { q: "Conjugue au passé composé : « choisir » à la 1ʳᵉ personne du pluriel.", a: "nous avons choisi" },
+  { q: "Conjugue au passé composé : « vendre » à la 2ᵉ personne du pluriel.", a: "vous avez vendu" },
+  { q: "Conjugue au passé composé : « réussir » à la 3ᵉ personne du singulier.", a: "il a réussi" },
+  { q: "Conjugue au passé composé : « entendre » à la 1ʳᵉ personne du singulier.", a: "j'ai entendu" },
+  { q: "Conjugue au passé composé : « répondre » à la 3ᵉ personne du pluriel.", a: "ils ont répondu" },
+  { q: "Conjugue au passé composé : « finir » à la 2ᵉ personne du singulier.", a: "tu as fini" },
+  { q: "Conjugue au passé composé : « sourire » à la 3ᵉ personne du singulier.", a: "elle a souri" },
+  { q: "Conjugue au passé composé : « pleurer » à la 1ʳᵉ personne du pluriel.", a: "nous avons pleuré" },
+  { q: "Conjugue au passé composé : « grandir » à la 2ᵉ personne du pluriel.", a: "vous avez grandi" },
+  { q: "Conjugue au passé composé : « chanter » à la 3ᵉ personne du pluriel.", a: "elles ont chanté" },
+  { q: "De quels éléments est formé le passé composé ?", a: "auxiliaire au présent + participe passé" },
+  { q: "De quels éléments est formé le plus-que-parfait ?", a: "auxiliaire à l'imparfait + participe passé" },
+  { q: "De quels éléments est formé le futur antérieur ?", a: "auxiliaire au futur simple + participe passé" },
+  { q: "Quel est l’auxiliaire utilisé pour former la plupart des temps composés ?", a: "avoir" },
+  { q: "Dans quel cas le verbe se conjugue-t-il avec l'auxiliaire être aux temps composés ?", a: "verbes pronominaux ou verbes de mouvement de la liste (aller, venir, etc.)" }
+],
+
+GA1: [
+  { q: "Donne la classe grammaticale du mot 'beau' ", a: "Adjectif" },
+{ q: "Quelle est la classe grammaticale du mot 'manger' dans la phrase 'J’aime manger des pommes' ?", a: "Verbe" },
+{ q: "Donne la classe grammaticale du mot 'elle' ", a: "Pronom" },
+{ q: "Quelle est la classe grammaticale du mot 'grand' dans la phrase 'Un grand arbre pousse là-bas' ?", a: "Adjectif" },
+{ q: "Donne la classe grammaticale du mot 'courir' ", a: "Verbe" },
+{ q: "Quelle est la classe grammaticale du mot 'ce' dans la phrase 'Ce livre est intéressant' ?", a: "Pronom" },
+{ q: "Donne la classe grammaticale du mot 'jolie' ", a: "Adjectif" },
+{ q: "Quelle est la classe grammaticale du mot 'nous' dans la phrase 'Nous partons demain' ?", a: "Pronom" },
+{ q: "Donne la classe grammaticale du mot 'chantent' ", a: "Verbe" },
+{ q: "Quelle est la classe grammaticale du mot 'bleu' dans la phrase 'Le ciel est bleu' ?", a: "Adjectif" },
+{ q: "Donne la classe grammaticale du mot 'me' ", a: "Pronom" },
+{ q: "Quelle est la classe grammaticale du mot 'jouer' dans la phrase 'Les enfants aiment jouer' ?", a: "Verbe" },
+{ q: "Donne la classe grammaticale du mot 'petite' ", a: "Adjectif" },
+{ q: "Quelle est la classe grammaticale du mot 'se' dans la phrase 'Elle se lave les mains' ?", a: "Pronom" },
+{ q: "Donne la classe grammaticale du mot 'écrire' ", a: "Verbe" },
+{ q: "Quelle est la classe grammaticale du mot 'votre' dans la phrase 'Votre maison est belle' ?", a: "Adjectif" },
+{ q: "Donne la classe grammaticale du mot 'lui' ", a: "Pronom" },
+{ q: "Quelle est la classe grammaticale du mot 'rapide' dans la phrase 'Il court très rapide' ?", a: "Adjectif" },
+{ q: "Donne la classe grammaticale du mot 'dansent' ", a: "Verbe" },
+{ q: "Quelle est la classe grammaticale du mot 'en' dans la phrase 'Je vais en France' ?", a: "Pronom" }
+],
+      GA3: [
+  { q: "Quel est le nom dans cette phrase : « Le cheval court dans le champ. »", a: "cheval" },
+  { q: "Quel est le nom dans cette phrase : « Mon frère adore le chocolat. »", a: "frère" },
+  { q: "Quel est le nom dans cette phrase : « La voiture roule vite. »", a: "voiture" },
+  { q: "Quel est le nom dans cette phrase : « Les enfants jouent dans le jardin. »", a: "enfants" },
+  { q: "Quel est le nom dans cette phrase : « Marie lit un livre. »", a: "Marie" },
+  { q: "Quel est le nom dans cette phrase : « Le soleil brille fort. »", a: "soleil" },
+  { q: "Quel est le nom dans cette phrase : « L’arbre est très grand. »", a: "arbre" },
+  { q: "Quel est le nom dans cette phrase : « Le professeur corrige les copies. »", a: "professeur" },
+  { q: "Quel est le nom dans cette phrase : « Le chaton dort dans un panier. »", a: "chaton" },
+  { q: "Quel est le nom dans cette phrase : « Ma cousine habite à Paris. »", a: "cousine" },
+  { q: "Trouve le nom dans cette liste : courir, maison, joli, rapide", a: "maison" },
+  { q: "Trouve le nom dans cette liste : livre, courir, bien, penser", a: "livre" },
+  { q: "Trouve le nom dans cette liste : montagne, haut, lentement, écrire", a: "montagne" },
+  { q: "Trouve le nom dans cette liste : vélo, manger, doux, réfléchir", a: "vélo" },
+  { q: "Quel mot est un nom ? parler, chanson, rapidement, heureux", a: "chanson" },
+  { q: "Quel mot est un nom ? table, marcher, grand, écrire", a: "table" },
+  { q: "Quel mot est un nom ? bonheur, lire, joyeux, vite", a: "bonheur" },
+  { q: "Quel mot est un nom ? fleur, courir, gentiment, gros", a: "fleur" },
+  { q: "Quel mot est un nom ? ordinateur, parler, petit, lent", a: "ordinateur" },
+  { q: "Quel mot est un nom ? neige, voler, blanc, froid", a: "neige" },
+  { q: "Quel type de nom est 'Paris' ?", a: "Nom propre" },
+  { q: "Quel type de nom est 'ville' ?", a: "Nom commun" },
+  { q: "Quel type de nom est 'Sophie' ?", a: "Nom propre" },
+  { q: "Quel type de nom est 'chat' ?", a: "Nom commun" },
+  { q: "Quel type de nom est 'France' ?", a: "Nom propre" },
+  { q: "Quel type de nom est 'pays' ?", a: "Nom commun" },
+  { q: "Quel type de nom est 'Victor Hugo' ?", a: "Nom propre" },
+  { q: "Quel type de nom est 'livre' ?", a: "Nom commun" },
+  { q: "Quel type de nom est 'Amazonie' ?", a: "Nom propre" },
+  { q: "Quel type de nom est 'fleuve' ?", a: "Nom commun" }
+],
+      GA4: [
+  { q: "Quel est le pronom dans la phrase : « Elle prépare le dîner. »", a: "Elle (pronom personnel)" },
+  { q: "Quel est le pronom dans la phrase : « Chacun doit faire attention. »", a: "Chacun (pronom indéfini)" },
+  { q: "Quel est le pronom dans la phrase : « Ce que tu dis est faux. »", a: "Ce que (pronom relatif)" },
+  { q: "Quel est le pronom dans la phrase : « Le vôtre est plus rapide. »", a: "vôtre (pronom possessif)" },
+  { q: "Quel est le pronom dans la phrase : « Qui a frappé à la porte ? »", a: "Qui (pronom interrogatif)" },
+  { q: "Quel est le pronom dans la phrase : « Ceux-ci sont intéressants. »", a: "Ceux-ci (pronom démonstratif)" },
+  { q: "Quel est le pronom dans la phrase : « Vous avez gagné. »", a: "Vous (pronom personnel)" },
+  { q: "Quel est le pronom dans la phrase : « Cela me dérange. »", a: "Cela (pronom démonstratif)" },
+  { q: "Quel est le pronom dans la phrase : « Aucun n’est venu. »", a: "Aucun (pronom indéfini)" },
+  { q: "Quel est le pronom dans la phrase : « Lesquels veux-tu choisir ? »", a: "Lesquels (pronom interrogatif) ou tu " },
+  { q: "Quel est le type du pronom souligné dans cette phrase : « *Je* t’ai vu hier. »", a: "Pronom personnel" },
+  { q: "Quel est le type du pronom souligné dans cette phrase : « *Ceux-là* sont mes cousins. »", a: "Pronom démonstratif" },
+  { q: "Quel est le type du pronom souligné dans cette phrase : « *Personne* ne l’a aidé. »", a: "Pronom indéfini" },
+  { q: "Quel est le type du pronom souligné dans cette phrase : « *Lequel* as-tu choisi ? »", a: "Pronom interrogatif" },
+  { q: "Quel est le type du pronom souligné dans cette phrase : « *Le tien* est cassé. »", a: "Pronom possessif" },
+  { q: "Quel est le type du pronom souligné dans cette phrase : « L’homme *qui* parle est mon oncle. »", a: "Pronom relatif" },
+  { q: "Quel est le type du pronom souligné dans cette phrase : « *Elles* sont parties en avance. »", a: "Pronom personnel" },
+  { q: "Quel est le type du pronom souligné dans cette phrase : « *Ceci* est une erreur. »", a: "Pronom démonstratif" },
+  { q: "Quel est le type du pronom souligné dans cette phrase : « *Chacun* a son opinion. »", a: "Pronom indéfini" },
+  { q: "Quel est le type du pronom souligné dans cette phrase : « Tu sais *ce que* j’en pense. »", a: "Pronom relatif" }
+],
+      GA5: [
+  { q: "Quel est le type de déterminant dans la phrase : « Ce livre est passionnant. »", a: "Déterminant démonstratif : 'Ce' détermine 'livre'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Mon frère joue du piano. »", a: "Déterminant possessif : 'Mon' détermine 'frère'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Chaque élève a reçu un livret. »", a: "Déterminant indéfini : 'Chaque' détermine 'élève'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Une histoire étrange a commencé. »", a: "Déterminant indéfini : 'Une' détermine 'histoire'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Leur chien est très bruyant. »", a: "Déterminant possessif : 'Leur' détermine 'chien'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Ce garçon est très poli. »", a: "Déterminant démonstratif : 'Ce' détermine 'garçon'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Ma cousine adore lire. »", a: "Déterminant possessif : 'Ma' détermine 'cousine'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Trois enfants sont venus. »", a: "Déterminant numéral cardinal : 'Trois' détermine 'enfants'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Ces chaussures sont trop petites. »", a: "Déterminant démonstratif : 'Ces' détermine 'chaussures'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Tout élève doit écouter. »", a: "Déterminant indéfini : 'Tout' détermine 'élève'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Le chat dort paisiblement. »", a: "Déterminant défini : 'Le' détermine 'chat'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Plusieurs enfants ont répondu. »", a: "Déterminant indéfini : 'Plusieurs' détermine 'enfants'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Sa mère est gentille. »", a: "Déterminant possessif : 'Sa' détermine 'mère'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Quelle robe préfères-tu ? »", a: "Déterminant interrogatif : 'Quelle' détermine 'robe'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Mon oncle vient ce soir. »", a: "Déterminant possessif : 'Mon' détermine 'oncle'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Aucun élève n'a été absent. »", a: "Déterminant indéfini : 'Aucun' détermine 'élève'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Les enfants jouent dans la cour. »", a: "Déterminant défini : 'Les' détermine 'enfants'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Leur maison est loin d’ici. »", a: "Déterminant possessif : 'Leur' détermine 'maison'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Certains animaux vivent la nuit. »", a: "Déterminant indéfini : 'Certains' détermine 'animaux'" },
+  { q: "Quel est le type de déterminant dans la phrase : « Cette idée me plaît beaucoup. »", a: "Déterminant démonstratif : 'Cette' détermine 'idée'" }
+],
+GA7: [
+  { q: "Repère la préposition dans : « Il marche vers la sortie. »", a: "vers" },
+  { q: "Repère la préposition dans : « Elle arrive de Paris demain. »", a: "de" },
+  { q: "Repère la préposition dans : « Le chat dort sur le canapé. »", a: "sur" },
+  { q: "Repère la préposition dans : « Nous avons parlé avec le directeur. »", a: "avec" },
+  { q: "Repère la préposition dans : « Ils vivent près de la rivière. »", a: "près de" },
+  { q: "Repère la préposition dans : « Tu dois attendre devant la porte. »", a: "devant" }, 
+  { q: "Repère la préposition dans : « Le livre est posé sous le lit. »", a: "sous" },
+  { q: "Repère la préposition dans : « L’oiseau s’envole au-dessus des arbres. »", a: "au-dessus de" },
+  { q: "Repère la préposition dans : « Il reste contre le mur. »", a: "contre" },
+  { q: "Repère la préposition dans : « Elle rentre après le cours. »", a: "après" },
+  { q: "Repère la préposition dans : « Nous irons chez mes cousins. »", a: "chez" },
+  { q: "Repère la préposition dans : « Ce cadeau vient de la part de Marie. »", a: "de la part de" },
+  { q: "Repère la préposition dans : « Ils sont partis sans leurs affaires. »", a: "sans" },
+  { q: "Repère la préposition dans : « Il travaille pour sa famille. »", a: "pour" },
+  { q: "Repère la préposition dans : « Je me promène autour du lac. »", a: "autour de" },
+  { q: "Repère la préposition dans : « Le chien court derrière la maison. »", a: "derrière" },
+  { q: "Repère la préposition dans : « Nous restons jusqu’au soir. »", a: "jusqu’à" },
+  { q: "Repère la préposition dans : « Le chat grimpe parmi les branches. »", a: "parmi" },
+  { q: "Repère la préposition dans : « Le train passe par Lyon. »", a: "par" }
+],
+
+      GB1: [
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « Le chat dort sur le canapé. »", a: "Le chat" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « Mes parents travaillent tard. »", a: "Mes parents" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « Tu écoutes de la musique. »", a: "Tu" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « La pluie tombe sans arrêt. »", a: "La pluie" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « Les enfants jouent dans le jardin. »", a: "Les enfants" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « Nous partons demain matin. »", a: "Nous" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « Le facteur est passé ce matin. »", a: "Le facteur" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « Elle range sa chambre tous les jours. »", a: "Elle" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « Mon frère et moi adorons le basket. »", a: "Mon frère et moi" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « Les fleurs poussent vite au printemps. »", a: "Les fleurs" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « L’oiseau chante dans l’arbre. »", a: "L’oiseau" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « Vous avez bien compris la consigne. »", a: "Vous" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « Le soleil brille dans le ciel. »", a: "Le soleil" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « Pierre court très vite. »", a: "Pierre" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « Les élèves écoutent attentivement. »", a: "Les élèves" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « Elles discutent dans la cour. »", a: "Elles" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « L’enfant pleure parce qu’il est tombé. »", a: "L’enfant" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « Ma sœur lit un roman. »", a: "Ma sœur" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « Les chiens aboient fort. »", a: "Les chiens" },
+  { q: "Quel est le sujet du verbe conjugué dans cette phrase : « Je comprends cette leçon. »", a: "Je" }
+],
+GB2: [
+  { q: "Dans la phrase : « Il mange une pomme. » quel est le COD ?", a: "une pomme" },
+  { q: "Dans la phrase : « Marie regarde la télévision. » quel est le COD ?", a: "la télévision" },
+  { q: "Dans la phrase : « Nous avons fini nos devoirs. » quel est le COD ?", a: "nos devoirs" },
+  { q: "Dans la phrase : « Le chat attrape une souris. » quel est le COD ?", a: "une souris" },
+  { q: "Dans la phrase : « Elle lit un roman passionnant. » quel est le COD ?", a: "un roman passionnant" },
+  { q: "Dans la phrase : « Paul admire son professeur. » quel est le COD ?", a: "son professeur" },
+  { q: "Dans la phrase : « Ils ont acheté un nouveau vélo. » quel est le COD ?", a: "un nouveau vélo" },
+  { q: "Dans la phrase : « L’enfant casse son jouet préféré. » quel est le COD ?", a: "son jouet préféré" },
+  { q: "Dans la phrase : « Nous prenons le bus chaque matin. » quel est le COD ?", a: "le bus" },
+  { q: "Dans la phrase : « Le roi récompense le chevalier. » quel est le COD ?", a: "le chevalier" },
+  { q: "Dans la phrase : « J’ai retrouvé mon stylo perdu. » quel est le COD ?", a: "mon stylo perdu" },
+  { q: "Dans la phrase : « Elle corrige ses erreurs. » quel est le COD ?", a: "ses erreurs" },
+  { q: "Dans la phrase : « Le professeur explique la leçon. » quel est le COD ?", a: "la leçon" },
+  { q: "Dans la phrase : « Ils découvrent un trésor ancien. » quel est le COD ?", a: "un trésor ancien" },
+  { q: "Dans la phrase : « J’écris une lettre à mon ami. » quel est le COD ?", a: "une lettre" },
+  { q: "Dans la phrase : « Le vent emporte les feuilles mortes. » quel est le COD ?", a: "les feuilles mortes" },
+  { q: "Dans la phrase : « Elle dessine un paysage magnifique. » quel est le COD ?", a: "un paysage magnifique" },
+  { q: "Dans la phrase : « Ils poursuivent leurs rêves. » quel est le COD ?", a: "leurs rêves" },
+  { q: "Dans la phrase : « Le poète compose un poème. » quel est le COD ?", a: "un poème" },
+  { q: "Dans la phrase : « J’écoute une chanson douce. » quel est le COD ?", a: "une chanson douce" }
+],
+
+GB3: [
+  { q: "Dans la phrase : « Paul est devenu très prudent. » quel est l’attribut du sujet ?", a: "très prudent" },
+  { q: "Dans la phrase : « Cette forêt semble immense. » quel est l’attribut du sujet ?", a: "immense" },
+  { q: "Dans la phrase : « Marie reste calme malgré tout. » quel est l’attribut du sujet ?", a: "calme" },
+  { q: "Dans la phrase : « Les élèves sont fatigués après le voyage. » quel est l’attribut du sujet ?", a: "fatigués" },
+  { q: "Dans la phrase : « Le ciel devient rouge au crépuscule. » quel est l’attribut du sujet ?", a: "rouge" },
+  { q: "Dans la phrase : « Ce fruit paraît délicieux. » quel est l’attribut du sujet ?", a: "délicieux" },
+  { q: "Dans la phrase : « Le roi est resté puissant malgré les guerres. » quel est l’attribut du sujet ?", a: "puissant" },
+  { q: "Dans la phrase : « Ils sont demeurés silencieux. » quel est l’attribut du sujet ?", a: "silencieux" },
+  { q: "Dans la phrase : « La soirée fut incroyable. » quel est l’attribut du sujet ?", a: "incroyable" },
+  { q: "Dans la phrase : « Le chocolat reste mon dessert préféré. » quel est l’attribut du sujet ?", a: "mon dessert préféré" },
+  { q: "Dans la phrase : « Mon frère est devenu pilote. » quel est l’attribut du sujet ?", a: "pilote" },
+  { q: "Dans la phrase : « Ces fleurs sont magnifiques. » quel est l’attribut du sujet ?", a: "magnifiques" },
+  { q: "Dans la phrase : « Leur attitude semble étrange. » quel est l’attribut du sujet ?", a: "étrange" },
+  { q: "Dans la phrase : « Cette décision est restée secrète. » quel est l’attribut du sujet ?", a: "secrète" },
+  { q: "Dans la phrase : « Le voyage s’est révélé éprouvant. » quel est l’attribut du sujet ?", a: "éprouvant" },
+  { q: "Dans la phrase : « Le président est devenu célèbre. » quel est l’attribut du sujet ?", a: "célèbre" },
+  { q: "Dans la phrase : « Ta proposition paraît raisonnable. » quel est l’attribut du sujet ?", a: "raisonnable" },
+  { q: "Dans la phrase : « Le ciel est resté clair toute la journée. » quel est l’attribut du sujet ?", a: "clair" },
+  { q: "Dans la phrase : « Les enfants sont restés joyeux malgré la pluie. » quel est l’attribut du sujet ?", a: "joyeux" },
+  { q: "Dans la phrase : « Le suspect s’est montré coopératif. » quel est l’attribut du sujet ?", a: "coopératif" }
+],
+GB4: [
+  { q: "Dans la phrase : « Elle parle souvent à son frère. » quel est le COI ?", a: "à son frère" },
+  { q: "Dans la phrase : « Il pense à son avenir. » quel est le COI ?", a: "à son avenir" },
+  { q: "Dans la phrase : « Nous obéissons aux règles de l'école. » quel est le COI ?", a: "aux règles de l'école" },
+  { q: "Dans la phrase : « Il s’intéresse à la musique classique. » quel est le COI ?", a: "à la musique classique" },
+  { q: "Dans la phrase : « Elle téléphonera à sa cousine demain. » quel est le COI ?", a: "à sa cousine" },
+  { q: "Dans la phrase : « Ils ont parlé de leur voyage. » quel est le COI ?", a: "de leur voyage" },
+  { q: "Dans la phrase : « Il se confie à son meilleur ami. » quel est le COI ?", a: "à son meilleur ami" },
+  { q: "Dans la phrase : « L’élève répond au professeur. » quel est le COI ?", a: "au professeur" },
+  { q: "Dans la phrase : « Nous rêvons d’aventures. » quel est le COI ?", a: "d’aventures" },
+  { q: "Dans la phrase : « Elle s’oppose à cette décision. » quel est le COI ?", a: "à cette décision" },
+  { q: "Dans la phrase : « Il a fait confiance à son équipe. » quel est le COI ?", a: "à son équipe" },
+  { q: "Dans la phrase : « Ils discutent de leurs projets. » quel est le COI ?", a: "de leurs projets" },
+  { q: "Dans la phrase : « Je me souviens de ce moment. » quel est le COI ?", a: "de ce moment" },
+  { q: "Dans la phrase : « Nous parlons de la situation actuelle. » quel est le COI ?", a: "de la situation actuelle" },
+  { q: "Dans la phrase : « Elle pense à ses prochaines vacances. » quel est le COI ?", a: "à ses prochaines vacances" },
+  { q: "Dans la phrase : « Il écrit à son professeur pour s’excuser. » quel est le COI ?", a: "à son professeur" },
+  { q: "Dans la phrase : « Ils se moquent de lui sans arrêt. » quel est le COI ?", a: "de lui" },
+  { q: "Dans la phrase : « L’enfant tient à sa peluche préférée. » quel est le COI ?", a: "à sa peluche préférée" },
+  { q: "Dans la phrase : « Elle parle de ses souvenirs d’enfance. » quel est le COI ?", a: "de ses souvenirs d’enfance" },
+  { q: "Dans la phrase : « Il manque à sa famille. » quel est le COI ?", a: "à sa famille" }
+],
+GC1:  [
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Il chante.' ?", "a": "1" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Elle lit un livre et elle écrit une lettre.' ?", "a": "2" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Quand il pleut, nous restons à la maison.' ?", "a": "2" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Le chat dort sur le tapis.' ?", "a": "1" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Je veux partir, mais il est trop tard.' ?", "a": "2" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Si tu viens, nous irons au cinéma.' ?", "a": "2" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Les enfants jouent dans le jardin.' ?", "a": "1" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Il travaille dur, car il veut réussir.' ?", "a": "2" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Elle a couru toute la matinée.' ?", "a": "1" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Paul lit un livre pendant que Marie cuisine.' ?", "a": "2" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Le soleil brille et les oiseaux chantent.' ?", "a": "2" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Nous partons demain.' ?", "a": "1" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'S’il fait beau, nous irons à la plage.' ?", "a": "2" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Le chien aboie quand il voit un étranger.' ?", "a": "2" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Je mange une pomme.' ?", "a": "1" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Elle chante, danse et rit joyeusement.' ?", "a": "3" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Bien qu’il soit fatigué, il continue à travailler.' ?", "a": "2" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'La maison est grande et confortable.' ?", "a": "1" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Il étudie pour réussir ses examens.' ?", "a": "2" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Nous avons mangé, puis nous sommes sortis.' ?", "a": "2" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Elle chante, danse, rit et applaudit.' ?", "a": "4" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Quand il arrive, nous mangeons, puis nous discutons.' ?", "a": "3" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Si tu étudies, tu réussiras, car tu es motivé.' ?", "a": "3" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Il travaille, elle lit, ils écoutent et tout va bien.' ?", "a": "4" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Bien qu’il soit tard, nous partons, car nous sommes prêts.' ?", "a": "3" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Le chat dort, le chien aboie, et les oiseaux chantent.' ?", "a": "3" },
+  { "q": "Combien de propositions y a-t-il dans la phrase : 'Si tu viens, nous jouerons, nous rirons, et nous danserons.' ?", "a": "4" }
+],
+      LA1:  [
+  { "q": "Quel est un synonyme du mot 'grand' dans la phrase : 'Il vit dans une 'grande' maison.' ?", "a": "vaste" },
+  { "q": "Quel est un synonyme du mot 'rapide' ?", "a": "vif" },
+  { "q": "Quel est un synonyme du mot 'chanter' dans la phrase : 'Elle 'chante' joyeusement.' ?", "a": "entonner" },
+  { "q": "Quel est un synonyme du mot 'beau' ?", "a": "joli" },
+  { "q": "Quel est un synonyme du mot 'courir' dans la phrase : 'Il 'court' dans le parc.' ?", "a": "galoper" },
+  { "q": "Quel est un synonyme du mot 'petit' ?", "a": "minuscule" },
+  { "q": "Quel est un synonyme du mot 'manger' dans la phrase : 'Nous 'mangeons' à midi.' ?", "a": "dévorer" },
+  { "q": "Quel est un synonyme du mot 'fort' ?", "a": "puissant" },
+  { "q": "Quel est un synonyme du mot 'regarder' dans la phrase : 'Il 'regarde' la télévision.' ?", "a": "observer" },
+  { "q": "Quel est un synonyme du mot 'triste' ?", "a": "mélancolique" },
+  { "q": "Quel est un synonyme du mot 'parler' dans la phrase : 'Elle 'parle' avec ses amis.' ?", "a": "discuter" },
+  { "q": "Quel est un synonyme du mot 'lumière' ?", "a": "éclat" },
+  { "q": "Quel est un synonyme du mot 'marcher' dans la phrase : 'Ils 'marchent' lentement.' ?", "a": "avancer" },
+  { "q": "Quel est un synonyme du mot 'joyeux' ?", "a": "heureux" },
+  { "q": "Quel est un synonyme du mot 'écrire' dans la phrase : 'Il 'écrit' une lettre.' ?", "a": "rédiger" },
+  { "q": "Quel est un synonyme du mot 'froid' ?", "a": "glacial" },
+  { "q": "Quel est un synonyme du mot 'travailler' dans la phrase : 'Elle 'travaille' dur.' ?", "a": "œuvrer" },
+  { "q": "Quel est un synonyme du mot 'calme' ?", "a": "serein" },
+  { "q": "Quel est un synonyme du mot 'lire' dans la phrase : 'Il 'lit' un roman.' ?", "a": "parcourir" },
+  { "q": "Quel est un synonyme du mot 'amusant' ?", "a": "divertissant" }
+],
+      LA2:  [
+  { "q": "Quel est un antonyme du mot 'grand' dans la phrase : 'Il vit dans une 'grande' maison.' ?", "a": "petit" },
+  { "q": "Quel est un antonyme du mot 'rapide' ?", "a": "lent" },
+  { "q": "Quel est un antonyme du mot 'chanter' dans la phrase : 'Elle 'chante' joyeusement.' ?", "a": "se taire" },
+  { "q": "Quel est un antonyme du mot 'beau' ?", "a": "laid" },
+  { "q": "Quel est un antonyme du mot 'courir' dans la phrase : 'Il 'court' dans le parc.' ?", "a": "marcher" },
+  { "q": "Quel est un antonyme du mot 'petit' ?", "a": "grand" },
+  { "q": "Quel est un antonyme du mot 'manger' dans la phrase : 'Nous 'mangeons' à midi.' ?", "a": "jeûner" },
+  { "q": "Quel est un antonyme du mot 'fort' ?", "a": "faible" },
+  { "q": "Quel est un antonyme du mot 'regarder' dans la phrase : 'Il 'regarde' la télévision.' ?", "a": "ignorer" },
+  { "q": "Quel est un antonyme du mot 'triste' ?", "a": "joyeux" },
+  { "q": "Quel est un antonyme du mot 'parler' dans la phrase : 'Elle 'parle' avec ses amis.' ?", "a": "se taire" },
+  { "q": "Quel est un antonyme du mot 'lumière' ?", "a": "obscurité" },
+  { "q": "Quel est un antonyme du mot 'marcher' dans la phrase : 'Ils 'marchent' lentement.' ?", "a": "s'arrêter, trottiner, courir" },
+  { "q": "Quel est un antonyme du mot 'joyeux' ?", "a": "triste" },
+  { "q": "Quel est un antonyme du mot 'écrire' dans la phrase : 'Il 'écrit' une lettre.' ?", "a": "effacer" },
+  { "q": "Quel est un antonyme du mot 'froid' ?", "a": "chaud" },
+  { "q": "Quel est un antonyme du mot 'travailler' dans la phrase : 'Elle 'travaille' dur.' ?", "a": "se reposer" },
+  { "q": "Quel est un antonyme du mot 'calme' ?", "a": "agité" },
+  { "q": "Quel est un antonyme du mot 'lire' dans la phrase : 'Il 'lit' un roman.' ?", "a": "ignorer" },
+  { "q": "Quel est un antonyme du mot 'amusant' ?", "a": "ennuyeux" }
+],
+            LA3:  [
+  { "q": "Quel est un paronyme du mot 'accepter' dans la phrase : 'Il 'accepte' l’invitation.' ?", "a": "excepté" },
+  { "q": "Quel est un paronyme du mot 'collision' ?", "a": "collusion" },
+  { "q": "Quel est un paronyme du mot 'affecter' dans la phrase : 'Cette nouvelle l’a 'affectée'.' ?", "a": "effectuer" },
+  { "q": "Quel est un paronyme du mot 'éminent' ?", "a": "imminent" },
+  { "q": "Quel est un paronyme du mot 'adopter' dans la phrase : 'Ils ont 'adopté' un chien.' ?", "a": "opter" },
+  { "q": "Quel est un paronyme du mot 'confection' ?", "a": "confiscation" },
+  { "q": "Quel est un paronyme du mot 'évasion' ?", "a": "invasion" },
+  { "q": "Quel est un paronyme du mot 'convaincre' dans la phrase : 'Il a su 'convaincre' son ami.' ?", "a": "vaincre" },
+  { "q": "Quel est un paronyme du mot 'infraction' ?", "a": "fraction" },
+  { "q": "Quel est un paronyme du mot 'amener' dans la phrase : 'Il va 'amener' son frère.' ?", "a": "emmener" },
+  { "q": "Quel est un paronyme du mot 'émerger' ?", "a": "immerger" },
+  { "q": "Quel est un paronyme du mot 'affection' dans la phrase : 'Elle montre beaucoup d’'affection'.' ?", "a": "infection" },
+  { "q": "Quel est un paronyme du mot 'illusion' ?", "a": "allusion" },
+  { "q": "Quel est un paronyme du mot 'prétendre' dans la phrase : 'Il 'prétend' tout savoir.' ?", "a": "tendre" },
+  { "q": "Quel est un paronyme du mot 'cession' ?", "a": "session" },
+  { "q": "Quel est un paronyme du mot 'évoquer' dans la phrase : 'Elle 'évoque' ses souvenirs.' ?", "a": "invoquer" },
+  { "q": "Quel est un paronyme du mot 'attestation' ?", "a": "contestation" },
+  { "q": "Quel est un paronyme du mot 'infliger' dans la phrase : 'Ils vont 'infliger' une amende.' ?", "a": "affliger" }
+],
+      LA4:  [
+  { "q": "Quelle est la bonne forme dans la phrase : 'Il 'a/à' mangé une pomme.' ?", "a": "a" },
+  { "q": "Quelle est la bonne forme dans la phrase : 'Elle va 'a/à' la plage.' ?", "a": "à" },
+  { "q": "Quelle est la bonne forme dans la phrase : ''on/ont' dîne ce soir.' ?", "a": "on" },
+  { "q": "Quelle est la bonne forme dans la phrase : 'Ils 'on/ont' fini leurs devoirs.' ?", "a": "ont" },
+  { "q": "Quelle est la bonne forme dans la phrase : 'Je 'sais/c’est' nager.' ?", "a": "sais" },
+  { "q": "Quelle est la bonne forme dans la phrase : ''sais/c’est' une belle journée.' ?", "a": "c’est" },
+  { "q": "Quelle est la bonne forme dans la phrase : 'Il 'a/à' couru vite.' ?", "a": "a" },
+  { "q": "Quelle est la bonne forme dans la phrase : 'Nous parlons 'a/à' nos amis.' ?", "a": "à" },
+  { "q": "Quelle est la bonne forme dans la phrase : ''on/ont' ne part pas aujourd’hui.' ?", "a": "on" },
+  { "q": "Quelle est la bonne forme dans la phrase : 'Elles 'on/ont' chanté hier.' ?", "a": "ont" },
+  { "q": "Quelle est la bonne forme dans la phrase : 'Tu 'sais/c’est' où il est ?' ?", "a": "sais" },
+  { "q": "Quelle est la bonne forme dans la phrase : ''sais/c’est' lui qui décide.' ?", "a": "c’est" },
+  { "q": "Quelle est la bonne forme dans la phrase : 'Elle 'a/à' un chat adorable.' ?", "a": "a" },
+  { "q": "Quelle est la bonne forme dans la phrase : 'Il écrit 'a/à' son frère.' ?", "a": "à" },
+  { "q": "Quelle est la bonne forme dans la phrase : ''on/ont' va au marché demain.' ?", "a": "on" },
+  { "q": "Quelle est la bonne forme dans la phrase : 'Ils 'on/ont' acheté une maison.' ?", "a": "ont" },
+  { "q": "Quelle est la bonne forme dans la phrase : 'Je 'sais/c’est' parler français.' ?", "a": "sais" },
+  { "q": "Quelle est la bonne forme dans la phrase : ''sais/c’est' une erreur.' ?", "a": "c’est" },
+  { "q": "Quelle est la bonne forme dans la phrase : 'Il 'a/à' oublié ses clés.' ?", "a": "a" },
+  { "q": "Quelle est la bonne forme dans la phrase : 'Elle donne un livre 'a/à' Marie.' ?", "a": "à" }
+],
+      LA5:  [
+  { "q": "Donnez un mot de la même famille que 'chanter' dans la phrase : 'Elle 'chante' avec joie.' ?", "a": "chant, chateur, chanteuse, chantant" },
+  { "q": "Donnez un mot de la même famille que 'livre' ?", "a": "livraison" },
+  { "q": "Donnez un mot de la même famille que 'beau' dans la phrase : 'C’est une 'belle' maison.' ?", "a": "beauté" },
+  { "q": "Donnez un mot de la même famille que 'courir' ?", "a": "course, courser, courant" },
+  { "q": "Donnez un mot de la même famille que 'parler' dans la phrase : 'Il 'parle' couramment.' ?", "a": "parole, parolier, parlement, parlementer" },
+  { "q": "Donnez un mot de la même famille que 'grand' ?", "a": "grandeur" },
+  { "q": "Donnez un mot de la même famille que 'manger' dans la phrase : 'Nous 'mangeons' à midi.' ?", "a": "mangeur, mangeaille" },
+  { "q": "Donnez un mot de la même famille que 'lumière' ?", "a": "lumineux" },
+  { "q": "Donnez un mot de la même famille que 'écrire' dans la phrase : 'Elle 'écrit' une lettre.' ?", "a": "écriture, écrivain, script, scriptural" },
+  { "q": "Donnez un mot de la même famille que 'fort' ?", "a": "force, fortement, forteresse" },
+  { "q": "Donnez un mot de la même famille que 'travailler' dans la phrase : 'Il 'travaille' dur.' ?", "a": "travail, travailleur" },
+  { "q": "Donnez un mot de la même famille que 'joie' ?", "a": "joyeux, jovial" },
+  { "q": "Donnez un mot de la même famille que 'lire' dans la phrase : 'Il 'lit' un roman.' ?", "a": "lecture, lectorat, liseur, liseuse" },
+  { "q": "Donnez un mot de la même famille que 'froid' ?", "a": "froidement, froideur" },
+  { "q": "Donnez un mot de la même famille que 'marcher' dans la phrase : 'Ils 'marchent' lentement.' ?", "a": "marche, marche-pied, marcheur" },
+  { "q": "Donnez un mot de la même famille que 'calme' ?", "a": "calmement" },
+  { "q": "Donnez un mot de la même famille que 'aimer' dans la phrase : 'Elle 'aime' danser.' ?", "a": "amour, amoureusement, amant" },
+  { "q": "Donnez un mot de la même famille que 'rapide' ?", "a": "rapidité, rapidement" },
+  { "q": "Donnez un mot de la même famille que 'penser' dans la phrase : 'Il 'pense' à son avenir.' ?", "a": "pensée, penseur, pensum, pensivement" },
+  { "q": "Donnez un mot de la même famille que 'triste' ?", "a": "tristesse, tristement" }
+],
+      LA6: [
+  { q: "Dans cette phrase, quel est le lien entre les mots « heureux » et « joyeux » ? « Il était heureux de son succès, tout comme il était joyeux. »", a: "Synonymes" },
+  { q: "Dans cette phrase, quel est le lien entre les mots « chaud » et « froid » ? « L’hiver est froid, contrairement à l’été qui est chaud. »", a: "Antonymes" },
+  { q: "Quel est le lien entre les mots « mer » et « mère » ?", a: "Homonymes" },
+  { q: "Quel est le lien entre les mots « collision » et « collusion » ?", a: "Paronymes" },
+  { q: "Dans cette phrase, quel est le lien entre les mots « rapide » et « lent » ? « La tortue est lente, le lièvre est rapide. »", a: "Antonymes" },
+  { q: "Quel est le lien entre les mots « voler » (dérober) et « voler » (dans les airs) ?", a: "Homonymes" },
+  { q: "Quel est le lien entre les mots « amener » et « emmener » ?", a: "Paronymes" },
+  { q: "Quel est le lien entre les mots « joli » et « beau » ?", a: "Synonymes" },
+  { q: "Quel est le lien entre les mots « pauvre » et « riche » ?", a: "Antonymes" },
+  { q: "Quel est le lien entre les mots « conte » et « compte » ?", a: "Homonymes" },
+  { q: "Quel est le lien entre les mots « affleurer » et « effleurer » ?", a: "Paronymes" },
+  { q: "Quel est le lien entre les mots « courageux » et « brave » ?", a: "Synonymes" },
+  { q: "Quel est le lien entre les mots « haut » et « bas » ?", a: "Antonymes" },
+  { q: "Quel est le lien entre les mots « pain » et « pin » ?", a: "Homonymes" },
+  { q: "Quel est le lien entre les mots « illusion » et « allusion » ?", a: "Paronymes" },
+  { q: "Quel est le lien entre les mots « travailleur » et « fainéant » ?", a: "Antonymes" },
+  { q: "Quel est le lien entre les mots « commencer » et « débuter » ?", a: "Synonymes" },
+  { q: "Quel est le lien entre les mots « voir » et « voire » ?", a: "Homonymes" },
+  { q: "Quel est le lien entre les mots « clément » et « indulgent » ?", a: "Synonymes" },
+  { q: "Quel est le lien entre les mots « éruption » et « irruption » ?", a: "Paronymes" }
+],
+      LA7: [
+  { q: "Corrige la ponctuation dans la phrase suivante : « je vais au marché. »", a: "Je vais au marché." },
+  { q: "Corrige la ponctuation dans la phrase suivante : « Il fait beau demain »", a: "Il fait beau demain. - point " },
+  { q: "Corrige la ponctuation dans la phrase suivante : « Tu veux du jus »", a: "Tu veux du jus ? - point d'interrogation " },
+  { q: "Corrige la ponctuation dans la phrase suivante : « C est mon chien. »", a: "C'est mon chien. - apostrophe " },
+  { q: "Corrige la ponctuation dans la phrase suivante : « Le soleil brille il fait chaud. »", a: "Le soleil brille, il fait chaud." },
+  { q: "Corrige la ponctuation dans la phrase suivante : « Où es tu »", a: "Où es-tu ? - le tiret" },
+  { q: "Corrige la ponctuation dans la phrase suivante : « nous avons gagné. »", a: "Nous avons gagné." },
+  { q: "Corrige la ponctuation dans la phrase suivante : « J aime les fraises. »", a: "J'aime les fraises." },
+  { q: "Corrige la ponctuation dans la phrase suivante : « Il fait froid mets ton pull. »", a: "Il fait froid, mets ton pull." },
+  { q: "Corrige la ponctuation dans la phrase suivante : « Tu viens avec moi. »", a: "Tu viens avec moi ?" },
+  { q: "Corrige la ponctuation dans la phrase suivante : « L école est fermée. »", a: "L'école est fermée." },
+  { q: "Corrige la ponctuation dans la phrase suivante : « Regardes ce chat ! »", a: "Regarde ce chat !" },
+  { q: "Corrige la ponctuation dans la phrase suivante : « je suis content. »", a: "Je suis content." },
+  { q: "Corrige la ponctuation dans la phrase suivante : « Il a dit quil viendrait. »", a: "Il a dit qu'il viendrait." },
+  { q: "Corrige la ponctuation dans la phrase suivante : « Le livre est sur la table il est rouge. »", a: "Le livre est sur la table, il est rouge." },
+  { q: "Corrige la ponctuation dans la phrase suivante : « Elle chante bien »", a: "Elle chante bien." },
+  { q: "Corrige la ponctuation dans la phrase suivante : « je nai pas fini mon exercice. »", a: "Je n'ai pas fini mon exercice." },
+  { q: "Corrige la ponctuation dans la phrase suivante : « On mange quoi ce soir. »", a: "On mange quoi ce soir ?" },
+  { q: "Corrige la ponctuation dans la phrase suivante : « j adore ce film. »", a: "J'adore ce film." },
+  { q: "Corrige la ponctuation dans la phrase suivante : « Il court saute et rit. »", a: "Il court, saute et rit." }
+],
+
+LB1: [
+  { q: "Trouve le champ lexical commun : pluie – vent – éclair – grêle – nuage.", a: "la météo / les phénomènes atmosphériques" },
+  { q: "Trouve le champ lexical commun : médecin – hôpital – infirmier – patient – ambulance.", a: "la santé / le domaine médical" },
+  { q: "Trouve le champ lexical commun : marteau – scie – tournvis – perceuse – clou.", a: "les outils / le bricolage" },
+  { q: "Trouve le champ lexical commun : joie – bonheur – rire – sourire – plaisir.", a: "les émotions positives" },
+  { q: "Trouve le champ lexical commun : mer – vague – sable – coquillage – algue.", a: "la mer / la plage" },
+  { q: "Trouve le champ lexical commun : cheval – âne – poney – jument – étalon.", a: "les équidés / les chevaux" },
+  { q: "Trouve le champ lexical commun : roman – auteur – chapitre – lecteur – bibliothèque.", a: "la littérature / le livre" },
+  { q: "Trouve le champ lexical commun : froid – geler – hivernal – neige – glace.", a: "le froid / l’hiver" },
+  { q: "Trouve le champ lexical commun : courir – sauter – sprinter – s’entraîner – transpirer.", a: "le sport / l’activité physique" },
+  { q: "Trouve le champ lexical commun : ordinateur – clavier – écran – souris – logiciel.", a: "l’informatique" },
+  { q: "Trouve le champ lexical commun : roi – reine – château – couronne – royaume.", a: "la royauté" },
+  { q: "Trouve le champ lexical commun : cuisiner – four – poêle – recette – ingrédients.", a: "la cuisine / la préparation des repas" },
+  { q: "Trouve le champ lexical commun : peur – frisson – effroi – inquiétude – angoisse.", a: "la peur" },
+  { q: "Trouve le champ lexical commun : voiture – moteur – volant – pneus – carburant.", a: "l’automobile / la voiture" },
+  { q: "Trouve le champ lexical commun : forêt – arbre – racine – branche – feuille.", a: "la forêt / les arbres" },
+  { q: "Trouve le champ lexical commun : chant – mélodie – refrain – voix – orchestre.", a: "la musique" },
+{ q: "Trouve le champ lexical commun : lune – étoile – galaxie – planète – cosmos.", a: "l’espace / l’astronomie" }
+],
+
+     LIA1:  [
+  { "q": "Quelle est la principale caractéristique du genre de la 'nouvelle' ?", "a": "Un récit court avec une chute" },
+  { "q": "Comment se distingue une nouvelle d’un 'roman' ?", "a": "Par sa brièveté et son intensité narrative" },
+  { "q": "Quel est un élément clé souvent présent à la fin d’une 'nouvelle' ?", "a": "Une chute inattendue" },
+  { "q": "Dans une nouvelle, quel rôle joue souvent la 'chute' ?", "a": "Elle surprend ou éclaire le lecteur" },
+  { "q": "Quel auteur français du XIXe siècle est connu pour ses 'nouvelles' réalistes ?", "a": "Guy de Maupassant" },
+  { "q": "Donnez le nom d’une nouvelle de Guy de Maupassant.", "a": "Boule de Suif" },
+  { "q": "Quelle est une différence entre une nouvelle et un 'récit court' autobiographique ?", "a": "La nouvelle est généralement fictive" },
+  { "q": "Qui est l’auteur de la série des 'Cauchemars' ?", "a": "Fredric Brown" },
+  { "q": "De quelle nationalité est Fredric Brown ?", "a": "Américain" },
+  { "q": "À quel siècle a vécu Fredric Brown ?", "a": "XXe siècle" },
+  { "q": "De quelle nationalité est Roald Dahl ?", "a": "Gallois/Anglais" },
+  { "q": "Donnez le nom d’une œuvre très connue de Roald Dahl.", "a": "Charlie et la chocolaterie" },
+  { "q": "Dans quelle nouvelle Fredric Brown raconte-t-il l’histoire d’un 'voyage dans le temps' ?", "a": "La première machine à temps" },
+  { "q": "Quelle est la chute dans 'La créature' de Jacques Sternberg ?", "a": "La planète est vivante" },
+  { "q": "De quelle nationalité est Italo Calvino ?", "a": "Italien" },
+  { "q": "Donnez le nom d’une nouvelle d’Italo Calvino.", "a": "Le veston ensorcelé" }
+],
+      LIA2:  [
+  { "q": "Quel pourrait être le registre littéraire avec la phrase : 'Il tomba dans un gouffre sans fond, hurlant de 'terreur'.' ?", "a": "Tragique" },
+  { "q": "Quel registre littéraire est souvent associé à l’exagération des défauts humains pour provoquer le 'rire' ?", "a": "Comique" },
+  { "q": "Quel pourrait être le registre littéraire avec la phrase : 'Un spectre apparut soudain dans la 'nuit' silencieuse.' ?", "a": "Fantastique" },
+  { "q": "Quel registre littéraire cherche à émouvoir par la 'pitié' ou la souffrance des personnages ?", "a": "Pathétique" },
+  { "q": "Quel pourrait être le registre littéraire de l’épopée 'L’Odyssée' d’Homère ?", "a": "Épique" },
+  { "q": "Quel pourrait être le registre littéraire avec la phrase : 'Son 'courage' surhumain défia les dieux.' ?", "a": "Épique" },
+  { "q": "Quel registre littéraire utilise souvent l’'ironie' pour critiquer la société ?", "a": "Satirique" },
+  { "q": "Quel pourrait être le registre littéraire avec la phrase : 'Le monde s’effondra dans un chaos de 'flammes' et de cris.' ?", "a": "Tragique" },
+  { "q": "Quel registre littéraire est caractérisé par une vision 'absurde' ou étrange de la réalité ?", "a": "Fantastique" },
+  { "q": "Quel pourrait être le registre littéraire dans les fables de La Fontaine, avec une leçon 'morale' ?", "a": "Didactique" },
+  { "q": "Quel pourrait être le registre littéraire avec la phrase : 'Il plaisanta sur sa chute, provoquant l’'hilarité' générale.' ?", "a": "Comique" },
+  { "q": "Quel registre littéraire cherche à susciter l’'admiration' pour des exploits héroïques ?", "a": "Épique" },
+  { "q": "Quel pourrait être le registre littéraire avec la phrase : 'Son 'amour' impossible le consumait de l’intérieur.' ?", "a": "Pathétique" },
+  { "q": "Quel pourrait être le registre littéraire utilisé dans 'Candide' de Voltaire pour critiquer les 'institutions' ?", "a": "Satirique" },
+  { "q": "Quel pourrait être le registre littéraire avec la phrase : 'Un vent surnaturel fit trembler les 'ombres'.' ?", "a": "Fantastique" },
+  { "q": "Quel registre littéraire cherche à enseigner une vérité à travers une 'histoire' simple ?", "a": "Didactique" },
+  { "q": "Quel pourrait être le registre littéraire avec la phrase : 'Le héros brandit son 'épée' face au dragon.' ?", "a": "Épique" },
+  { "q": "Quel registre littéraire est marqué par une tonalité 'moqueuse' et critique ?", "a": "Satirique" },
+  { "q": "Quel pourrait être le registre littéraire avec la phrase : 'Ses larmes coulèrent face à la 'misère' du monde.' ?", "a": "Pathétique" },
+  { "q": "Quel registre littéraire est souvent utilisé dans les récits où l’'étrange' défie la réalité ?", "a": "Fantastique" },
+  { "q": "Quel pourrait être le registre littéraire avec la phrase : 'Il décrivit la vie 'quot-stimulatedienne' d’un ouvrier avec précision.' ?", "a": "Réaliste" },
+  { "q": "Quel pourrait être le registre littéraire de 'Madame Bovary' de Gustave Flaubert, qui dépeint les mœurs 'provinciales' ?", "a": "Réaliste" },
+  { "q": "Quel pourrait être le registre littéraire avec la phrase : 'Les 'machines' pensantes dominaient l’humanité dans un futur lointain.' ?", "a": "Science-fiction" },
+  { "q": "Quel pourrait être le registre littéraire utilisé dans 'Le Meilleur des mondes' d’Aldous Huxley pour imaginer une société 'futuriste' ?", "a": "Science-fiction" },
+  { "q": "Quel registre littéraire cherche à reproduire fidèlement la 'réalité' sociale sans idéalisation ?", "a": "Réaliste" },
+  { "q": "Quel pourrait être le registre littéraire avec la phrase : 'Elle vivait dans un monde où les 'étoiles' étaient des vaisseaux spatiaux.' ?", "a": "Science-fiction" },
+  { "q": "Quel auteur du XIXe siècle est connu pour ses récits 'réalistes' comme 'Bel-Ami' ?", "a": "Guy de Maupassant" },
+  { "q": "Quel pourrait être le registre littéraire avec la phrase : 'Le marché grouillait de 'vie' et de détails ordinaires.' ?", "a": "Réaliste" },
+  { "q": "Quel pourrait être le registre littéraire de 'La Guerre des mondes' de H.G. Wells, avec une invasion 'extraterrestre' ?", "a": "Science-fiction" },
+  { "q": "Quel pourrait être le registre littéraire avec la phrase : 'Son 'robot' domestique se rebella contre ses ordres.' ?", "a": "Science-fiction" }
+],
+LIA3: [
+  { q: "Cette phrase est-elle active ou passive : « Le château est entouré par une forêt dense. » ?", a: "passive" },
+  { q: "Cette phrase est-elle active ou passive : « Les élèves rangent leurs affaires. » ?", a: "active" },
+  { q: "Cette phrase est-elle active ou passive : « La porte a été ouverte par le gardien. » ?", a: "passive" },
+  { q: "Cette phrase est-elle active ou passive : « Le vent secoue violemment les arbres. » ?", a: "active" },
+  { q: "Cette phrase est-elle active ou passive : « Le spectacle sera présenté par la troupe demain. » ?", a: "passive" },
+  { q: "Cette phrase est-elle active ou passive : « Les touristes visitent le musée. » ?", a: "active" },
+  { q: "Cette phrase est-elle active ou passive : « La décision a été prise rapidement. » ?", a: "passive" },
+  { q: "Cette phrase est-elle active ou passive : « Julie écrit un poème. » ?", a: "active" },
+  { q: "Cette phrase est-elle active ou passive : « Le match est commenté en direct par deux journalistes. » ?", a: "passive" },
+  { q: "Cette phrase est-elle active ou passive : « Le chat a attrapé une souris. » ?", a: "active" },
+  { q: "Cette phrase est-elle active ou passive : « Le décor a été imaginé par les élèves. » ?", a: "passive" },
+  { q: "Cette phrase est-elle active ou passive : « Les scientifiques analysent les résultats. » ?", a: "active" },
+  { q: "Cette phrase est-elle active ou passive : « La voiture sera réparée par le mécanicien. » ?", a: "passive" },
+  { q: "Cette phrase est-elle active ou passive : « Les enfants préparent un gâteau. » ?", a: "active" },
+  { q: "Cette phrase est-elle active ou passive : « Un record a été battu pendant la course. » ?", a: "passive" },
+  { q: "Cette phrase est-elle active ou passive : « Paul raconte une histoire. » ?", a: "active" },
+  { q: "Cette phrase est-elle active ou passive : « Le fleuve est traversé par un pont ancien. » ?", a: "passive" },
+  { q: "Cette phrase est-elle active ou passive : « Le professeur explique la leçon. » ?", a: "active" },
+  { q: "Cette phrase est-elle active ou passive : « Le voleur a été arrêté par la police. » ?", a: "passive" },
+  { q: "Cette phrase est-elle active ou passive : « Léa admire les peintures du musée. » ?", a: "active" }
+],
+      LIB1: [
+  { q: "Qui est l’auteur de *L’Iliade* et *L’Odyssée* ?", a: "Homère" },
+  { q: "À quel genre littéraire appartiennent *L’Iliade* et *L’Odyssée* ?", a: "L’épopée" },
+  { q: "Quel est le nom du poète grec ayant composé deux grandes épopées antiques ?", a: "Homère" },
+  { q: "Comment appelle-t-on un long poème racontant les exploits d’un héros ?", a: "Une épopée" },
+  { q: "Quel auteur célèbre a écrit de nombreuses fables au XVIIe siècle ?", a: "Jean de La Fontaine" },
+  { q: "De quels animaux sont souvent les héros dans les fables de La Fontaine ?", a: "Des animaux" },
+  { q: "Quel est le but d’une fable ?", a: "Donner une leçon de morale" },
+  { q: "À quel genre littéraire appartiennent les textes comme *Le Petit Chaperon Rouge* ?", a: "Le conte" },
+  { q: "Qui a écrit des contes comme *Cendrillon* ou *Le Petit Chaperon Rouge* ?", a: "Charles Perrault" },
+  { q: "Quel personnage se rend chez sa grand-mère dans un célèbre conte ?", a: "Le Petit Chaperon Rouge" },
+  { q: "Quel est le rôle du loup dans *Le Petit Chaperon Rouge* ?", a: "Le méchant" },
+  { q: "Qui a écrit *Le Petit Prince* ?", a: "Antoine de Saint-Exupéry" },
+  { q: "Dans *Le Petit Prince*, sur quelle planète vit le héros au début ?", a: "Sur un astéroïde (B-612)" },
+  { q: "Quel genre de récit est *Le Petit Prince* ?", a: "Un conte philosophique" },
+  { q: "Quel genre littéraire raconte les aventures de héros comme Lancelot ou Roland ?", a: "Les romans de chevalerie" },
+  { q: "Dans quelle époque situe-t-on les romans de chevalerie ?", a: "Au Moyen Âge" },
+  { q: "Qui est l’auteur de la pièce *L’Avare* ?", a: "Molière" },
+  { q: "Quel est le genre théâtral de *L’Avare* ?", a: "La comédie" },
+  { q: "Quel explorateur célèbre a raconté ses aventures dans un livre, notamment en Chine ?", a: "Marco Polo" },
+  { q: "Quel navigateur a découvert l’Amérique en 1492 ?", a: "Christophe Colomb" }
+],
+LIB2: [
+  { q: "Identifie la figure de style : « Que pourrais-je faire d’autre que t’aider ? »", a: "question rhétorique" },
+  { q: "Identifie la figure de style : « La Mort étend son voile sur le village. »", a: "allégorie" },
+  { q: "Identifie la figure de style : « Il a mille choses à faire avant ce soir ! »", a: "hyperbole" },
+  { q: "Identifie la figure de style : « Des fleurs, des arbres, des rivières, des montagnes remplissaient le paysage. »", a: "accumulation" },
+  { q: "Identifie la figure de style : « Pourquoi ne pas profiter de la vie ? »", a: "question rhétorique" },
+  { q: "Identifie la figure de style : « La Justice lève son glaive contre les coupables. »", a: "allégorie" },
+  { q: "Identifie la figure de style : « Je t’ai répété cette règle un million de fois ! »", a: "hyperbole" },
+  { q: "Identifie la figure de style : « Il empile ses livres, ses cahiers, ses stylos, ses feuilles, ses dossiers sur le bureau. »", a: "accumulation" },
+  { q: "Identifie la figure de style : « Comment pourrais-je oublier un tel souvenir ? »", a: "question rhétorique" },
+  { q: "Identifie la figure de style : « L’Hiver, rude et sombre, s’empare des forêts. »", a: "allégorie" },
+  { q: "Identifie la figure de style : « C’est un géant ! » (en parlant d’un homme simplement grand)", a: "hyperbole" },
+  { q: "Identifie la figure de style : « Sa chambre était remplie de vêtements, de livres, de papiers, de chaussures, de jeux. »", a: "accumulation" },
+  { q: "Identifie la figure de style : « Qui pourrait encore nier cette évidence ? »", a: "question rhétorique" },
+  { q: "Identifie la figure de style : « Le Temps dévore tout sur son passage. »", a: "allégorie" },
+  { q: "Identifie la figure de style : « Je meurs de faim ! »", a: "hyperbole" },
+  { q: "Identifie la figure de style : « Il collectionne des timbres, des pièces, des cartes, des affiches, des autocollants. »", a: "accumulation" },
+  { q: "Identifie la figure de style : « Comment veux-tu que je te croie ? »", a: "question rhétorique" },
+  { q: "Identifie la figure de style : « La Liberté guide le peuple sur les barricades. »", a: "allégorie" },
+  { q: "Identifie la figure de style : « J’ai attendu une éternité ! »", a: "hyperbole" },
+  { q: "Identifie la figure de style : « Dans son sac : cahiers, trousses, crayons, feutres, règles, carnets… »", a: "accumulation" }
+],
+LIB3: [
+  { q: "Identifie la figure de style : « Ses cheveux sont de l’or. »", a: "métaphore" },
+  { q: "Identifie la figure de style : « Il court comme le vent. »", a: "comparaison" },
+  { q: "Identifie la figure de style : « J’ai une tonne de travail. »", a: "hyperbole" },
+  { q: "Identifie la figure de style : « Cette femme est une vraie lionne. »", a: "métaphore" },
+  { q: "Identifie la figure de style : « Elle est légère comme une plume. »", a: "comparaison" },
+  { q: "Identifie la figure de style : « Je meurs de faim. »", a: "hyperbole" },
+  { q: "Identifie la figure de style : « Le temps, c’est de l’argent. »", a: "métaphore" },
+  { q: "Identifie la figure de style : « Il est fort comme un taureau. »", a: "comparaison" },
+  { q: "Identifie la figure de style : « Il lui a répété cela mille fois. »", a: "hyperbole" },
+  { q: "Identifie la figure de style : « Cette ville est un vrai labyrinthe. »", a: "métaphore" },
+  { q: "Identifie la figure de style : « Ses yeux brillent tels des étoiles. »", a: "comparaison" },
+  { q: "Identifie la figure de style : « C’est un désastre monumental ! »", a: "hyperbole" },
+  { q: "Identifie la figure de style : « L’espoir est une lumière dans la nuit. »", a: "métaphore" },
+  { q: "Identifie la figure de style : « Il nage comme un poisson. »", a: "comparaison" },
+  { q: "Identifie la figure de style : « Ce film est le meilleur de tous les temps ! »", a: "hyperbole" },
+  { q: "Identifie la figure de style : « La mer est un miroir d’argent. »", a: "métaphore" },
+  { q: "Identifie la figure de style : « Il dort comme un bébé. »", a: "comparaison" },
+  { q: "Identifie la figure de style : « Je suis mort de fatigue. »", a: "hyperbole" },
+  { q: "Identifie la figure de style : « Cet enfant est un ange. »", a: "métaphore" }
+],
+LIC1: [
+  { q: "Quel est le mètre du vers suivant : « Le soleil brillait haut dans l’air » ?", a: "octosyllabe" },
+  { q: "Quel est le mètre du vers suivant : « Les feuilles tombaient doucement » ?", a: "octosyllabe" },
+  { q: "Quel est le mètre du vers suivant : « La mer recouvre les rochers » ?", a: "octosyllabe" },
+
+  { q: "Quel est le mètre du vers suivant : « Le vent violent traverse la montagne » ?", a: "décasyllabe" },
+  { q: "Quel est le mètre du vers suivant : « Dans le jardin les roses se fanent » ?", a: "décasyllabe" },
+  { q: "Quel est le mètre du vers suivant : « Un cheval noir galopait dans la plaine » ?", a: "décasyllabe" },
+
+  { q: "Quel est le mètre du vers suivant : « Je marche à pas lents sous le ciel étoilé » ?", a: "alexandrin" },
+  { q: "Quel est le mètre du vers suivant : « La nuit étend sur nous son manteau de silence » ?", a: "alexandrin" },
+  { q: "Quel est le mètre du vers suivant : « Le temps s’enfuit toujours sans jamais revenir » ?", a: "alexandrin" },
+
+  { q: "Quel est le mètre du vers suivant : « Les oiseaux chantent dans les arbres » ?", a: "octosyllabe" },
+  { q: "Quel est le mètre du vers suivant : « Sur la colline avance un cavalier » ?", a: "décasyllabe" },
+  { q: "Quel est le mètre du vers suivant : « Les cloches sonnent dans le soir qui s’achève » ?", a: "alexandrin" },
+
+  { q: "Quel est le mètre du vers suivant : « Un voile blanc couvrait la mer » ?", a: "octosyllabe" },
+  { q: "Quel est le mètre du vers suivant : « La route est longue et pleine de mystères » ?", a: "décasyllabe" },
+  { q: "Quel est le mètre du vers suivant : « Les vastes horizons dorment sous la lumière » ?", a: "alexandrin" },
+
+  { q: "Quel est le mètre du vers suivant : « L’enfant sourit aux étoiles » ?", a: "octosyllabe" },
+  { q: "Quel est le mètre du vers suivant : « La forêt sombre murmure doucement » ?", a: "décasyllabe" },
+  { q: "Quel est le mètre du vers suivant : « J’entends monter la voix profonde de la terre » ?", a: "alexandrin" },
+
+  { q: "Quel est le mètre du vers suivant : « Les vagues roulent sur le sable » ?", a: "octosyllabe" },
+  { q: "Quel est le mètre du vers suivant : « Le vieil homme marchait sans regarder derrière » ?", a: "décasyllabe" }
+],
+
+      OA1: [
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'Il a un chien.' ?", "a": "a" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'Je vais à Paris.' ?", "a": "à" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'On mange ensemble.' ?", "a": "on" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'Ils ont fini leurs devoirs.' ?", "a": "ont" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'C’est son livre préféré.' ?", "a": "son" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'Ils sont très fatigués.' ?", "a": "sont" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'Elle range ses affaires.' ?", "a": "ses" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'C’est une belle journée.' ?", "a": "c’est" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'Ces fleurs sont magnifiques.' ?", "a": "ces" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'Il donne un cadeau à sa sœur.' ?", "a": "à" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'Elle a mangé une pomme.' ?", "a": "a" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'On ne sait jamais.' ?", "a": "on" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'Les enfants ont joué dehors.' ?", "a": "ont" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'Il met son chapeau.' ?", "a": "son" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'Les gâteaux sont délicieux.' ?", "a": "sont" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'Il admire ses tableaux.' ?", "a": "ses" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'C’est lui qui a raison.' ?", "a": "c’est" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'Ces livres sont anciens.' ?", "a": "ces" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'Nous parlons à nos amis.' ?", "a": "à" },
+  { "q": "Quel est le mot pouvant avoir un homonyme dans la phrase : 'On va au cinéma ce soir.' ?", "a": "on" }
+],
+OA2: [
+  { q: "Complète avec le verbe *ranger* : « Vous devez ___ vos affaires avant de sortir. »", a: "ranger" },
+  { q: "Complète avec  le verbe *terminer* : « Il a bien ___ son travail aujourd’hui. »", a: "terminé" },
+  { q: "Complète avec  le verbe *fermer* : « Vous ___ la fenêtre quand il fait froid. »", a: "fermez" },
+  { q: "Complète avec  le verbe *envoyer* : « Elle veut ___ un message à son amie. »", a: "envoyer" },
+  { q: "Complète avec  le verbe *déballer* : « Ils ont déjà ___ leurs cadeaux. »", a: "déballé" },
+  { q: "Complète avec  le verbe *marcher* : « Vous ___ trop vite, attendez-nous ! »", a: "marchez" },
+  { q: "Complète avec  le verbe *rentrer* : « Il préfère ___ avant que la nuit tombe. »", a: "rentrer" },
+  { q: "Complète avec  le verbe *poser* : « Elle a ___ son sac sur la chaise. »", a: "posé" },
+  { q: "Complète avec  le verbe *poser* : « Vous ___ toujours les mêmes questions. »", a: "posez" },
+  { q: "Complète avec  le verbe *copier* : « Tu dois ___ cette phrase correctement. »", a: "copier" },
+  { q: "Complète avec  le verbe *ranger* : « Nous avons ___ toute la pièce ensemble. »", a: "rangé" },
+  { q: "Complète avec  le verbe *dîner* : « Vous ___ souvent au même endroit. »", a: "dînez" },
+  { q: "Complète avec  le verbe *présenter* : « Il va ___ son exposé demain. »", a: "présenter" },
+  { q: "Complète avec  le verbe *casser* : « Elle a ___ son verre par accident. »", a: "cassé" },
+  { q: "Complète avec  le verbe *parler* : « Vous ___ trop fort, on vous entend dans le couloir ! »", a: "parlez" },
+  { q: "Complète avec  le verbe *annuler* : « Ils ont dû ___ leur voyage. »", a: "annuler" },
+  { q: "Complète avec  le verbe *dessiner* : « Tu as ___ ce tableau toi-même ? »", a: "dessiné" },
+  { q: "Complète avec  le verbe *corriger* : « Vous ___ toujours les exercices très vite. »", a: "corrigez" },
+  { q: "Complète avec  le verbe *porter* : « Il a dû ___ son sac à dos. »", a: "porter" },
+  { q: "Complète avec  le verbe *terminer* : « Elle veut ___ avant la nuit. »", a: "terminer" }
+],
+
+      OB1: [
+  { q: "Quel est le bon accord du nom dans cette phrase : « Les ___ sont en fleurs. » (rose)", a: "roses" },
+  { q: "Complète avec le nom correctement accordé : « Un ___ s’est échappé du zoo. » (lion)", a: "lion" },
+  { q: "Complète avec le bon accord : « Des ___ colorés volaient dans le ciel. » (cerf-volant)", a: "cerfs-volants" },
+  { q: "Accorde le nom correctement : « Une ___ effrayante est entrée. » (ombre)", a: "ombre" },
+  { q: "Quel est le pluriel de « cheval » ?", a: "chevaux" },
+  { q: "Quel est le pluriel de « journal » ?", a: "journaux" },
+  { q: "Complète : « Les ___ jouaient dans la cour. » (enfant)", a: "enfants" },
+  { q: "Accorde le nom correctement : « Ce ___ est très dangereux. » (requin)", a: "requin" },
+  { q: "Quel est le pluriel de « travail » ?", a: "travaux" },
+  { q: "Quel est le singulier de « gâteaux » ?", a: "gâteau" },
+  { q: "Accorde le nom au féminin : « Un acteur célèbre. »", a: "Une actrice célèbre." },
+  { q: "Quel est le féminin de « chanteur » ?", a: "chanteuse" },
+  { q: "Complète avec le nom au pluriel : « Les ___ sont rangées. » (chaise)", a: "chaises" },
+  { q: "Quel est le pluriel de « bijou » ?", a: "bijoux" },
+  { q: "Complète avec le bon accord : « Les ___ sont tombées. » (feuille)", a: "feuilles" },
+  { q: "Quel est le féminin de « directeur » ?", a: "directrice" },
+  { q: "Accorde correctement : « Le ___ chante tôt le matin. » (coq)", a: "coq" },
+  { q: "Quel est le féminin de « menteur » ?", a: "menteuse" },
+  { q: "Quel est le pluriel de « chevalier » ?", a: "chevaliers" },
+  { q: "Accorde correctement : « Les ___ sont délicieuses. » (pomme)", a: "pommes" }
+],
+      OB2: [
+  { q: "Complète avec l’adjectif correctement accordé : « Une robe ___. » (bleu)", a: "bleue" },
+  { q: "Complète : « Des chiens ___ couraient dans le parc. » (noir)", a: "noirs" },
+  { q: "Accorde l’adjectif : « Une femme ___. » (gentil)", a: "gentille" },
+  { q: "Quel est le bon accord de l’adjectif dans : « Les maisons sont ___. » (grand)", a: "grandes" },
+  { q: "Complète : « Un homme ___. » (heureux)", a: "heureux" },
+  { q: "Complète : « Des élèves ___ ont participé. » (sérieux)", a: "sérieux" },
+  { q: "Quel est le féminin de l’adjectif « bon » ?", a: "bonne" },
+  { q: "Complète avec l’accord correct : « Des filles ___. » (sportif)", a: "sportives" },
+  { q: "Accorde l’adjectif dans : « Une voiture ___. » (italien)", a: "italienne" },
+  { q: "Complète : « Les montagnes sont ___. » (haut)", a: "hautes" },
+  { q: "Accorde l’adjectif dans : « Un pull ___. » (blanc)", a: "blanc" },
+  { q: "Quel est le pluriel de l’adjectif « cruel » au féminin ?", a: "cruelles" },
+  { q: "Accorde : « Une mer ___. » (calme)", a: "calme" },
+  { q: "Accorde : « Des garçons ___. » (brave)", a: "braves" },
+  { q: "Complète : « Une idée ___. » (original)", a: "originale" },
+  { q: "Quel est l’accord de « actif » pour des femmes ?", a: "actives" },
+  { q: "Accorde : « Un château ___. » (ancien)", a: "ancien" },
+  { q: "Accorde : « Des histoires ___. » (amusant)", a: "amusantes" },
+  { q: "Quel est le pluriel féminin de « neuf » ?", a: "neuves" },
+  { q: "Accorde : « Une route ___. » (long)", a: "longue" }
+]
+          };
+
+    function searchQuestion() {
+      const input = document.getElementById('codeInput').value.toUpperCase();
+      const category = input.slice(0, 2);
+      const box = document.getElementById('question-box');
+      const questionText = document.getElementById('question-text');
+      const answerText = document.getElementById('answer-text');
+
+      if (data[input]) {
+        const questions = data[input];
+        const random = questions[Math.floor(Math.random() * questions.length)];
+
+        box.className = `category-${category}`;
+        box.style.display = 'block';
+        questionText.innerText = random.q;
+        answerText.innerText = random.a;
+        answerText.style.display = 'none';
+      } else {
+        alert("Code inconnu. Veuillez entrer un code valide (ex: CA1, GA1...) ");
+        box.style.display = 'none';
+      }
+    }
+
+    function revealAnswer() {
+      document.getElementById('answer-text').style.display = 'block';
+    }
+
+    function resetPage() {
+      document.getElementById('codeInput').value = '';
+      document.getElementById('question-box').style.display = 'none';
+    }
+    document.getElementById('codeInput').addEventListener('keydown', function(event) {
+  if (event.key === 'Enter') {
+    event.preventDefault(); // empêche tout comportement par défaut éventuel
+    searchQuestion();
+  }
+  
+});
+
+  </script>
+</body>
+</html>
