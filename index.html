@@ -111,10 +111,35 @@
 
   <script>
   
-   function openQRScanner() {
-    document.getElementById("qr-overlay").style.display = "block";
-    // scanner ici
-  }
+function openQRScanner() {
+  document.getElementById("qr-overlay").style.display = "block";
+  const html5QrCode = new Html5Qrcode("qr-reader");
+
+  Html5Qrcode.getCameras().then(devices => {
+    if (devices && devices.length) {
+      // Prendre la première caméra disponible
+      const cameraId = devices[0].id;
+
+      html5QrCode.start(
+        { deviceId: { exact: cameraId } },
+        { fps: 10, qrbox: 250 },
+        (decodedText) => {
+          html5QrCode.stop();
+          closeQRScanner();
+          askQuestion(decodedText);
+        },
+        (errorMessage) => {
+          console.warn("Scan error:", errorMessage);
+        }
+      ).catch(err => {
+        console.error("Unable to start scanning:", err);
+      });
+
+    }
+  }).catch(err => {
+    console.error("Camera retrieval error:", err);
+  });
+}
 
   function closeQRScanner() {
     document.getElementById("qr-overlay").style.display = "none";
