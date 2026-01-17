@@ -140,7 +140,12 @@ function openQRScanner() {
       decodedText => {
         qrScanner.stop();
         closeQRScanner();
-        askQuestion(decodedText);
+       const code = decodedText.trim();
+if (questions[code]) {
+  askQuestion(code);
+} else {
+  alert("QR reconnu mais aucune question associée : " + code);
+}
       },
       errorMessage => {
         // erreurs normales de scan, on ignore
