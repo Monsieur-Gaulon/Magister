@@ -136,7 +136,12 @@ function startQrScanner() {
       { deviceId: { exact: cameraId } },
       { fps: 10, qrbox: 250 },
       decodedText => {
-        const code = decodedText.trim();
+  alert(
+    "QR brut : [" + decodedText + "]\n\n" +
+    "Clés disponibles :\n" +
+    Object.keys(questions).join(", ")
+  );
+}
 
         qrScanner.stop();
         closeQRScanner();
