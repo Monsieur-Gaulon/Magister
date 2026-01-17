@@ -150,6 +150,12 @@ function startQrScanner() {
     );
   });
 }
+	  function closeQRScanner() {
+  if (qrScanner) {
+    qrScanner.stop().catch(() => {});
+  }
+  document.getElementById("qr-overlay").style.display = "none";
+}
   
     const data = {
       CA1: [
