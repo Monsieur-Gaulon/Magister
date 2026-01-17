@@ -111,42 +111,56 @@
 
   <script>
 
+let qrScanner;
+
 function openQRScanner() {
   document.getElementById("qr-overlay").style.display = "block";
-  const html5QrCode = new Html5Qrcode("qr-reader");
 
-  Html5Qrcode.getCameras().then(devices => {
-    if (devices && devices.length) {
-      // Prendre la première caméra disponible
-      const cameraId = devices[0].id;
+  qrScanner = new Html5Qrcode("qr-reader");
 
-      html5QrCode.start(
-        { deviceId: { exact: cameraId } },
-        { fps: 10, qrbox: 250 },
-        (decodedText) => {
-          html5QrCode.stop();
-          closeQRScanner();
-          askQuestion(decodedText);
-        },
-        (errorMessage) => {
-          console.warn("Scan error:", errorMessage);
-        }
-      ).catch(err => {
-        console.error("Unable to start scanning:", err);
-      });
-
+  Html5Qrcode.getCameras().then(cameras => {
+    if (!cameras || cameras.length === 0) {
+      alert("Aucune caméra détectée.");
+      return;
     }
+
+    // 1️⃣ Chercher une caméra arrière
+    let backCamera = cameras.find(cam =>
+      cam.label.toLowerCase().includes("back") ||
+      cam.label.toLowerCase().includes("rear") ||
+      cam.label.toLowerCase().includes("environment")
+    );
+
+    // 2️⃣ Si non trouvée, prendre la dernière caméra (souvent la meilleure)
+    const cameraId = backCamera ? backCamera.id : cameras[cameras.length - 1].id;
+
+    qrScanner.start(
+      { deviceId: { exact: cameraId } },
+      { fps: 10, qrbox: 250 },
+      decodedText => {
+        qrScanner.stop();
+        closeQRScanner();
+        askQuestion(decodedText);
+      },
+      errorMessage => {
+        // erreurs normales de scan, on ignore
+      }
+    ).catch(err => {
+      console.error("Erreur démarrage caméra :", err);
+      alert("Impossible d'accéder à la caméra.");
+    });
   }).catch(err => {
-    console.error("Camera retrieval error:", err);
+    console.error("Erreur récupération caméras :", err);
+    alert("Accès caméra refusé.");
   });
 }
 
-  function closeQRScanner() {
-    document.getElementById("qr-overlay").style.display = "none";
+	  function closeQRScanner() {
+  if (qrScanner) {
+    qrScanner.stop().catch(() => {});
   }
-
-  window.openQRScanner = openQRScanner;
-  window.closeQRScanner = closeQRScanner;
+  document.getElementById("qr-overlay").style.display = "none";
+}
   
     const data = {
       CA1: [
